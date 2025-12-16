@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "dev:client": "cd client && npm run dev",
-    "build": "cd client && npm run build",
+    "build": "cd client && npm install && npm run build",
     "build:deploy": "node build-and-deploy.js",
     "deploy": "wrangler deploy",
     "create-kv": "node create-kv.js",
