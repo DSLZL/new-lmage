@@ -7,8 +7,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        hand: ['"Patrick Hand"', '"Ma Shan Zheng"', '"ZCOOL XiaoWei"', 'cursive', 'sans-serif'],
-        sans: ['"Patrick Hand"', '"Ma Shan Zheng"', '"ZCOOL XiaoWei"', 'cursive', 'sans-serif'],
+        hand: ['"Patrick Hand"', '"Comic Sans MS"', '"Chalkboard SE"', '"Bradley Hand"', 'cursive', 'sans-serif'],
+        sans: ['"Patrick Hand"', '"Comic Sans MS"', '"Chalkboard SE"', '"Bradley Hand"', 'cursive', 'sans-serif'],
       },
       colors: {
         paper: '#ffffff',

@@ -8,7 +8,6 @@ export function createLoFiPreviewPage(baseUrl, id, rawUrl, downloadUrl) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>涂鸦预览 - Doodle Diary</title>
-    <link href="https://fonts.loli.net/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -17,7 +16,7 @@ export function createLoFiPreviewPage(baseUrl, id, rawUrl, downloadUrl) {
         }
 
         body {
-            font-family: 'Patrick Hand', cursive;
+            font-family: 'Patrick Hand', 'Comic Sans MS', 'Chalkboard SE', 'Bradley Hand', cursive, sans-serif;
             background: repeating-linear-gradient(
                 0deg,
                 #f5f5f5 0px,
