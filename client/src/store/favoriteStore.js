@@ -3,12 +3,12 @@ import axios from 'axios';
 
 /**
  * 收藏状态管理
- * 管理用户收藏的图片
+ * 优化：移除乐观更新后的立即 refetch，真正实现乐观更新
  */
 const useFavoriteStore = create((set, get) => ({
   // ========== 状态 ==========
-  favorites: new Set(), // 收藏的图片ID集合
-  favoriteImages: [], // 收藏的图片详细信息
+  favorites: new Set(),
+  favoriteImages: [],
   isLoading: false,
   error: null,
 
@@ -20,7 +20,6 @@ const useFavoriteStore = create((set, get) => ({
       const response = await axios.get('/api/favorites');
       const { images } = response.data;
 
-      // 提取ID集合
       const favoriteIds = new Set(images.map((img) => img.id));
 
       set({
@@ -47,8 +46,11 @@ const useFavoriteStore = create((set, get) => ({
     return get().initFavorites();
   },
 
-  // ========== 添加收藏 ==========
+  // ========== 添加收藏（真正的乐观更新） ==========
   addFavorite: async (imageId) => {
+    // 保存旧状态用于回滚
+    const oldFavorites = new Set(get().favorites);
+
     // 乐观更新
     set((state) => ({
       favorites: new Set([...state.favorites, imageId]),
@@ -56,18 +58,12 @@ const useFavoriteStore = create((set, get) => ({
 
     try {
       await axios.post(`/api/favorites/${imageId}`);
-      
-      // 重新获取收藏列表以更新详细信息
-      await get().fetchFavorites();
-
+      // 成功后不再立即 refetch，保持乐观更新的状态
+      // 下次打开收藏页面时会自动同步
       return { success: true };
     } catch (error) {
-      // 回滚乐观更新
-      set((state) => {
-        const newFavorites = new Set(state.favorites);
-        newFavorites.delete(imageId);
-        return { favorites: newFavorites };
-      });
+      // 失败时回滚
+      set({ favorites: oldFavorites });
 
       const errorMessage = error.response?.data?.error || '添加收藏失败';
       set({ error: errorMessage });
@@ -76,8 +72,12 @@ const useFavoriteStore = create((set, get) => ({
     }
   },
 
-  // ========== 取消收藏 ==========
+  // ========== 取消收藏（真正的乐观更新） ==========
   removeFavorite: async (imageId) => {
+    // 保存旧状态用于回滚
+    const oldFavorites = new Set(get().favorites);
+    const oldFavoriteImages = [...get().favoriteImages];
+
     // 乐观更新
     set((state) => {
       const newFavorites = new Set(state.favorites);
@@ -90,16 +90,13 @@ const useFavoriteStore = create((set, get) => ({
 
     try {
       await axios.delete(`/api/favorites/${imageId}`);
-
       return { success: true };
     } catch (error) {
-      // 回滚乐观更新
-      set((state) => ({
-        favorites: new Set([...state.favorites, imageId]),
-      }));
-
-      // 重新获取收藏列表
-      await get().fetchFavorites();
+      // 失败时回滚
+      set({
+        favorites: oldFavorites,
+        favoriteImages: oldFavoriteImages,
+      });
 
       const errorMessage = error.response?.data?.error || '取消收藏失败';
       set({ error: errorMessage });
@@ -121,7 +118,12 @@ const useFavoriteStore = create((set, get) => ({
 
   // ========== 批量添加收藏 ==========
   addFavorites: async (imageIds) => {
-    set({ isLoading: true, error: null });
+    const oldFavorites = new Set(get().favorites);
+
+    // 乐观更新
+    set((state) => ({
+      favorites: new Set([...state.favorites, ...imageIds]),
+    }));
 
     try {
       await axios.post('/api/favorites/batch', {
@@ -129,18 +131,13 @@ const useFavoriteStore = create((set, get) => ({
         imageIds,
       });
 
-      // 重新获取收藏列表
-      await get().fetchFavorites();
-
-      set({ isLoading: false });
-
       return { success: true };
     } catch (error) {
+      // 回滚
+      set({ favorites: oldFavorites });
+
       const errorMessage = error.response?.data?.error || '批量添加收藏失败';
-      set({
-        error: errorMessage,
-        isLoading: false,
-      });
+      set({ error: errorMessage });
 
       return { success: false, error: errorMessage };
     }
@@ -148,7 +145,18 @@ const useFavoriteStore = create((set, get) => ({
 
   // ========== 批量取消收藏 ==========
   removeFavorites: async (imageIds) => {
-    set({ isLoading: true, error: null });
+    const oldFavorites = new Set(get().favorites);
+    const oldFavoriteImages = [...get().favoriteImages];
+
+    // 乐观更新
+    set((state) => {
+      const newFavorites = new Set(state.favorites);
+      imageIds.forEach(id => newFavorites.delete(id));
+      return {
+        favorites: newFavorites,
+        favoriteImages: state.favoriteImages.filter((img) => !imageIds.includes(img.id)),
+      };
+    });
 
     try {
       await axios.post('/api/favorites/batch', {
@@ -156,18 +164,16 @@ const useFavoriteStore = create((set, get) => ({
         imageIds,
       });
 
-      // 重新获取收藏列表
-      await get().fetchFavorites();
-
-      set({ isLoading: false });
-
       return { success: true };
     } catch (error) {
-      const errorMessage = error.response?.data?.error || '批量取消收藏失败';
+      // 回滚
       set({
-        error: errorMessage,
-        isLoading: false,
+        favorites: oldFavorites,
+        favoriteImages: oldFavoriteImages,
       });
+
+      const errorMessage = error.response?.data?.error || '批量取消收藏失败';
+      set({ error: errorMessage });
 
       return { success: false, error: errorMessage };
     }

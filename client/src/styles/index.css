@@ -2,72 +2,438 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===================================
+   Lo-Fi Doodle Diary - Global Styles
+   "如果看起来太干净，就打破它"
+   =================================== */
+
 @layer base {
   html, body {
     @apply h-full w-full;
   }
-  
+
   body {
-    @apply font-hand text-pencil bg-gray-100 bg-graph-paper bg-graph antialiased overflow-x-hidden;
+    @apply font-hand text-pencil antialiased overflow-x-hidden;
+    background-color: #f8f8f6;
+    background-image:
+      linear-gradient(#e2e2e0 1px, transparent 1px),
+      linear-gradient(90deg, #e2e2e0 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -1px -1px;
   }
 
   #root {
     @apply min-h-full flex flex-col;
   }
 
-  /* Custom Scrollbar */
+  /* Selection */
+  ::selection {
+    @apply bg-marker-yellow text-pencil;
+  }
+
+  /* Custom Scrollbar - 铅笔风格 */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
   }
   ::-webkit-scrollbar-track {
     @apply bg-transparent;
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 4px,
+      #e5e7eb 4px,
+      #e5e7eb 5px
+    );
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-pencil/20 rounded-full hover:bg-pencil/40 transition-colors;
+    @apply bg-pencil/30 rounded-sm;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-pencil/50;
+  }
+
+  /* Focus styles */
+  *:focus-visible {
+    @apply outline-2 outline-dashed outline-pencil outline-offset-2;
   }
 }
 
 @layer components {
-  /* Paper Card Container */
+  /* ===== Paper & Card Containers ===== */
+
+  .paper-sheet {
+    @apply bg-white relative;
+    box-shadow:
+      3px 4px 0px 0px rgba(55, 65, 81, 0.12),
+      0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
   .paper-card {
-    @apply bg-white shadow-sketch border border-gray-200 relative w-full h-full min-h-[500px] flex flex-col;
+    @apply bg-white shadow-sketch border border-gray-200/80 relative;
   }
-  
-  /* Inputs */
+
+  .paper-note {
+    @apply bg-paper-aged shadow-sketch border border-gray-200/60 p-4;
+  }
+
+  /* 便签纸效果 */
+  .sticky-note {
+    @apply bg-marker-yellow p-4 shadow-sticker relative;
+    transform: rotate(-1deg);
+  }
+  .sticky-note::before {
+    content: '';
+    @apply absolute -top-1 left-1/2 w-6 h-3 bg-white/60;
+    transform: translateX(-50%);
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+
+  /* 拍立得效果 */
+  .polaroid {
+    @apply bg-white p-3 pb-12 shadow-polaroid relative;
+  }
+  .polaroid::after {
+    content: '';
+    @apply absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-b from-transparent to-gray-50/50;
+  }
+
+  /* ===== Tape Decorations (胶带效果) ===== */
+
+  .tape {
+    @apply absolute bg-white/50 backdrop-blur-[2px] shadow-tape z-20 pointer-events-none;
+    background-image: linear-gradient(135deg, rgba(255,255,255,0.4) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.4) 75%, transparent 75%);
+    background-size: 4px 4px;
+  }
+
+  .tape-top {
+    @apply tape -top-3 left-1/2 w-20 h-6;
+    transform: translateX(-50%) rotate(-2deg);
+  }
+
+  .tape-top-left {
+    @apply tape -top-2 -left-2 w-16 h-5;
+    transform: rotate(-15deg);
+  }
+
+  .tape-top-right {
+    @apply tape -top-2 -right-2 w-16 h-5;
+    transform: rotate(12deg);
+  }
+
+  .tape-corner {
+    @apply tape w-12 h-4;
+  }
+
+  /* 彩色胶带 */
+  .tape-yellow {
+    @apply tape bg-marker-yellow/60;
+  }
+  .tape-pink {
+    @apply tape bg-marker-pink/60;
+  }
+  .tape-blue {
+    @apply tape bg-marker-blue/60;
+  }
+
+  /* ===== Staple Effect (订书钉) ===== */
+
+  .staple {
+    @apply absolute w-4 h-1 bg-gray-400 rounded-sm z-20;
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.2);
+  }
+  .staple-top {
+    @apply staple top-2 left-1/2 -translate-x-1/2;
+  }
+  .staple-left {
+    @apply staple top-1/2 left-2 -translate-y-1/2 rotate-90;
+  }
+
+  /* ===== Form Inputs (手绘输入框) ===== */
+
   .input-hand {
-    @apply w-full bg-transparent border-b-2 border-dashed border-gray-300 px-2 py-2 outline-none transition-all duration-300 focus:border-pencil focus:bg-yellow-50/20 font-hand text-xl placeholder-gray-400;
+    @apply w-full bg-transparent border-b-2 border-dashed border-gray-300
+           px-1 py-2 outline-none transition-all duration-300
+           focus:border-solid focus:border-pencil focus:bg-marker-yellow/10
+           font-hand text-xl placeholder-gray-400;
   }
-  
-  /* Buttons */
+
+  .input-box {
+    @apply w-full bg-white border-2 border-dashed border-gray-300
+           rounded-sketch px-4 py-3 outline-none transition-all duration-300
+           focus:border-solid focus:border-pencil focus:shadow-sketch
+           font-hand text-xl placeholder-gray-400;
+  }
+
+  .textarea-hand {
+    @apply input-box min-h-[120px] resize-none;
+    background-image: repeating-linear-gradient(
+      transparent,
+      transparent 31px,
+      #e5e7eb 32px
+    );
+    line-height: 32px;
+    padding-top: 8px;
+  }
+
+  /* ===== Buttons (手绘按钮) ===== */
+
   .btn-doodle {
-    @apply px-4 py-2 border-2 border-pencil rounded-md font-hand text-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sketch active:translate-y-0 active:shadow-none bg-white flex items-center justify-center gap-2;
+    @apply px-5 py-2.5 border-2 border-pencil rounded-sketch
+           font-hand text-lg transition-all duration-200
+           hover:-translate-y-1 hover:shadow-sketch-hover
+           active:translate-y-0 active:shadow-sketch
+           bg-white flex items-center justify-center gap-2
+           cursor-pointer select-none;
   }
-  
+
   .btn-primary {
-    @apply btn-doodle bg-marker-yellow hover:bg-yellow-300 border-pencil text-pencil font-bold;
+    @apply btn-doodle bg-marker-yellow hover:bg-yellow-300 text-pencil font-bold;
   }
 
   .btn-secondary {
-    @apply btn-doodle bg-marker-blue hover:bg-blue-300 border-pencil text-pencil;
+    @apply btn-doodle bg-marker-blue hover:bg-blue-300 text-pencil;
+  }
+
+  .btn-success {
+    @apply btn-doodle bg-marker-green hover:bg-green-300 text-pencil;
   }
 
   .btn-danger {
-    @apply btn-doodle bg-red-100 hover:bg-red-200 border-red-300 text-red-600;
+    @apply btn-doodle bg-red-100 hover:bg-red-200 border-red-400 text-ink-red;
   }
 
-  /* Tape Effect */
-  .tape-top {
-    @apply absolute -top-3 left-1/2 -translate-x-1/2 w-32 h-8 bg-white/40 backdrop-blur-sm shadow-tape z-20 pointer-events-none;
-    transform: translateX(-50%) rotate(-1deg);
+  .btn-ghost {
+    @apply btn-doodle bg-transparent border-dashed hover:bg-gray-50 hover:border-solid;
+  }
+
+  /* 圆形图标按钮 */
+  .btn-icon {
+    @apply w-10 h-10 rounded-full border-2 border-pencil bg-white
+           flex items-center justify-center
+           hover:shadow-sketch hover:-translate-y-0.5
+           active:translate-y-0 transition-all duration-200;
+  }
+
+  /* ===== Tags & Badges (标签贴纸) ===== */
+
+  .tag {
+    @apply inline-flex items-center gap-1 px-3 py-1
+           text-sm font-hand border-2 border-dashed border-current
+           rounded-sketch transition-all duration-200;
+  }
+
+  .tag-yellow {
+    @apply tag bg-marker-yellow/50 text-pencil border-pencil/50;
+  }
+  .tag-pink {
+    @apply tag bg-marker-pink/50 text-pencil border-pencil/50;
+  }
+  .tag-blue {
+    @apply tag bg-marker-blue/50 text-pencil border-pencil/50;
+  }
+  .tag-green {
+    @apply tag bg-marker-green/50 text-pencil border-pencil/50;
+  }
+
+  .badge {
+    @apply inline-flex items-center justify-center min-w-[24px] h-6 px-2
+           text-sm font-hand bg-marker-pink rounded-full
+           border border-pencil/30 shadow-sticker;
+  }
+
+  /* ===== Dividers (分隔线) ===== */
+
+  .divider-dashed {
+    @apply border-t-2 border-dashed border-gray-300 my-6;
+  }
+
+  .divider-torn {
+    @apply relative my-8 h-4;
+    background: linear-gradient(135deg, transparent 25%, #e5e7eb 25%, #e5e7eb 50%, transparent 50%, transparent 75%, #e5e7eb 75%);
+    background-size: 8px 8px;
+  }
+
+  /* ===== Highlights (荧光笔标记) ===== */
+
+  .highlight-yellow {
+    @apply bg-marker-yellow/60 px-1 -mx-1;
+    transform: rotate(-0.5deg);
+    display: inline;
+    box-decoration-break: clone;
+  }
+
+  .highlight-pink {
+    @apply bg-marker-pink/60 px-1 -mx-1;
+    transform: rotate(0.5deg);
+    display: inline;
+  }
+
+  .highlight-blue {
+    @apply bg-marker-blue/60 px-1 -mx-1;
+    display: inline;
+  }
+
+  /* ===== Notebook Spine (笔记本书脊) ===== */
+
+  .notebook-spine {
+    @apply relative;
+  }
+  .notebook-spine::before {
+    content: '';
+    @apply absolute top-0 right-0 bottom-0 w-3 bg-gradient-to-l from-gray-200/50 to-transparent;
+  }
+  .notebook-spine::after {
+    content: '';
+    @apply absolute top-4 right-1 bottom-4 w-0.5;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 8px,
+      #9ca3af 8px,
+      #9ca3af 12px
+    );
+  }
+
+  /* ===== Paper Clip (回形针) ===== */
+
+  .paper-clip {
+    @apply absolute -top-4 right-8 w-8 h-12;
+    background: linear-gradient(135deg, transparent 40%, #9ca3af 40%, #9ca3af 45%, transparent 45%),
+                linear-gradient(45deg, #9ca3af 20%, transparent 20%);
+    transform: rotate(15deg);
+    border-radius: 4px;
+  }
+
+  /* ===== Checkbox (手绘复选框) ===== */
+
+  .checkbox-hand {
+    @apply w-6 h-6 border-2 border-dashed border-pencil rounded-sm
+           bg-white cursor-pointer transition-all duration-200
+           flex items-center justify-center;
+  }
+  .checkbox-hand:hover {
+    @apply border-solid shadow-sketch;
+  }
+  .checkbox-hand.checked {
+    @apply bg-marker-yellow border-solid;
+  }
+  .checkbox-hand.checked::after {
+    content: '✓';
+    @apply text-pencil font-bold text-lg;
+  }
+
+  /* ===== Toast Notifications ===== */
+
+  .toast-doodle {
+    @apply fixed bottom-4 right-4 px-6 py-4 bg-white border-2 border-pencil
+           shadow-sketch-lg font-hand text-lg z-50 max-w-sm;
+    transform: rotate(1deg);
+    animation: stamp 0.3s ease-out;
+  }
+
+  /* ===== Loading States ===== */
+
+  .loading-pencil {
+    @apply inline-block w-6 h-6 border-2 border-dashed border-pencil
+           rounded-full animate-spin;
+    border-top-style: solid;
+  }
+
+  .skeleton-hand {
+    @apply bg-gray-200/50 animate-pulse rounded-sketch;
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 40%,
+      rgba(255,255,255,0.5) 50%,
+      transparent 60%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* ===== Empty States ===== */
+
+  .empty-doodle {
+    @apply text-center py-16 px-8;
+  }
+  .empty-doodle-icon {
+    @apply text-6xl text-gray-300 mb-4;
+    transform: rotate(-5deg);
+  }
+  .empty-doodle-text {
+    @apply text-2xl text-gray-400 font-hand;
+  }
+
+  /* ===== Wobbly Elements (抖动元素) ===== */
+
+  .wobbly {
+    @apply transition-transform duration-300;
+  }
+  .wobbly:hover {
+    animation: wobble 0.3s ease-in-out;
+  }
+
+  /* ===== Page Curl Effect (纸张卷边) ===== */
+
+  .page-curl {
+    @apply relative overflow-hidden;
+  }
+  .page-curl::after {
+    content: '';
+    @apply absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-gray-200/80 to-transparent;
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
   }
 }
 
-/* Animations */
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@layer utilities {
+  /* Rotation utilities */
+  .rotate-slight-random {
+    --rotation: calc((var(--index, 0) * 1.5deg) - 2deg);
+    transform: rotate(var(--rotation));
+  }
+
+  /* Text shadows for pencil effect */
+  .text-shadow-pencil {
+    text-shadow: 1px 1px 0 rgba(55, 65, 81, 0.1);
+  }
+
+  /* Dashed underline */
+  .underline-dashed {
+    text-decoration: underline;
+    text-decoration-style: dashed;
+    text-underline-offset: 4px;
+  }
+
+  /* Scribble animation */
+  .animate-scribble {
+    animation: scribble 0.2s ease-in-out;
+  }
 }
-.animate-spin-slow {
-  animation: spin-slow 12s linear infinite;
+
+/* Keyframes */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(-1deg); }
+  25% { transform: rotate(1deg); }
+  50% { transform: rotate(-0.5deg); }
+  75% { transform: rotate(0.5deg); }
+}
+
+/* Print Styles */
+@media print {
+  body {
+    background: white !important;
+  }
+  .tape, .staple {
+    display: none !important;
+  }
 }

@@ -106,7 +106,6 @@ export async function fileHandler(c) {
         // 如果所有尝试都失败，返回404
         return c.text('文件不存在', 404);
     } catch (error) {
-        console.error('文件访问错误:', error);
         return c.text('服务器错误', 500);
     }
 }
@@ -913,7 +912,6 @@ async function getFilePath(env, fileId) {
         });
 
         if (!res.ok) {
-            console.error(`HTTP错误! 状态: ${res.status}`);
             return null;
         }
 
@@ -923,11 +921,9 @@ async function getFilePath(env, fileId) {
         if (ok && result) {
             return result.file_path;
         } else {
-            console.error('响应数据错误:', responseData);
             return null;
         }
     } catch (error) {
-        console.error('获取文件路径错误:', error.message);
         return null;
     }
 }
@@ -959,14 +955,11 @@ async function proxyFile(c, fileUrl) {
     // 从请求ID中获取原始文件扩展名
     const requestId = c.req.param('id');
     const originalExtension = requestId.includes('.') ? requestId.split('.').pop().toLowerCase() : '';
-    console.log(`请求ID: ${requestId}, 原始扩展名: ${originalExtension}`);
 
     if (contentType) {
         // 特殊处理：如果原始文件是GIF但Telegram返回的是MP4，保持为video类型但添加特殊标记
         if (originalExtension === 'gif' && contentType.startsWith('video/')) {
-            console.log('检测到GIF转MP4的情况，保持video Content-Type');
             headers.set('Content-Type', contentType);
-            // 添加自定义头部标记这是一个转换后的GIF
             headers.set('X-Original-Format', 'gif');
         } else {
             headers.set('Content-Type', contentType);
@@ -974,7 +967,6 @@ async function proxyFile(c, fileUrl) {
     } else {
         // 根据URL推断内容类型
         const fileExtension = fileUrl.split('.').pop().toLowerCase();
-        console.log(`从URL推断文件扩展名: ${fileExtension}`);
 
         if (['jpg', 'jpeg'].includes(fileExtension)) {
             headers.set('Content-Type', 'image/jpeg');
@@ -985,10 +977,8 @@ async function proxyFile(c, fileUrl) {
             if (fileExtension === 'mp4' || contentType === 'video/mp4') {
                 headers.set('Content-Type', 'video/mp4');
                 headers.set('X-Original-Format', 'gif');
-                console.log('设置GIF转MP4的Content-Type');
             } else {
                 headers.set('Content-Type', 'image/gif');
-                console.log('设置GIF Content-Type');
             }
         } else if (fileExtension === 'webp') {
             headers.set('Content-Type', 'image/webp');

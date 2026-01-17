@@ -2,7 +2,52 @@ import { upload } from '@/utils/request';
 
 /**
  * 上传服务 - 支持并发控制的批量上传
+ * 优化：添加进度节流，避免频繁 setState 导致卡顿
  */
+
+/**
+ * 创建节流函数 - 控制函数执行频率
+ * @param {Function} fn - 要节流的函数
+ * @param {number} delay - 节流间隔（毫秒）
+ */
+const createThrottle = (fn, delay) => {
+  let lastCall = 0;
+  let lastArgs = null;
+  let timeoutId = null;
+
+  const throttled = (...args) => {
+    lastArgs = args;
+    const now = Date.now();
+
+    if (now - lastCall >= delay) {
+      lastCall = now;
+      fn(...args);
+    } else if (!timeoutId) {
+      // 确保最后一次调用会被执行
+      timeoutId = setTimeout(() => {
+        lastCall = Date.now();
+        timeoutId = null;
+        if (lastArgs) {
+          fn(...lastArgs);
+        }
+      }, delay - (now - lastCall));
+    }
+  };
+
+  // 强制执行（用于完成时的最终回调）
+  throttled.flush = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+    if (lastArgs) {
+      fn(...lastArgs);
+      lastArgs = null;
+    }
+  };
+
+  return throttled;
+};
 
 /**
  * 上传单个文件（内部方法）
@@ -12,7 +57,7 @@ import { upload } from '@/utils/request';
  * @returns {Promise} 上传结果
  */
 const uploadSingleFile = async (file, retries = 3, onProgress) => {
-  // 快速验证（不阻塞上传）
+  // 快速验证
   const maxSize = 10 * 1024 * 1024; // 10MB
   if (file.size > maxSize) {
     return {
@@ -30,13 +75,12 @@ const uploadSingleFile = async (file, retries = 3, onProgress) => {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const response = await upload('/upload', formData, onProgress);
-      // 后端返回的是数组，取第一个元素
       const result = Array.isArray(response.data) ? response.data[0] : response.data;
-      
+
       if (!result || !result.src) {
         throw new Error('上传失败：服务器返回数据格式错误');
       }
-      
+
       return {
         success: true,
         filename: file.name,
@@ -55,29 +99,31 @@ const uploadSingleFile = async (file, retries = 3, onProgress) => {
           error: error.response?.data?.error || error.message || '上传失败',
         };
       }
-      // 重试前等待一下
+      // 指数退避重试
       await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
     }
   }
 };
 
 /**
- * 并发池控制器（简化版）
- * @param {Array} tasks - 任务数组
- * @param {Array} files - 文件数组（用于计算总大小）
- * @param {number} concurrency - 并发数
- * @param {Function} onProgress - 进度回调
- * @returns {Promise<Array>} 所有任务结果
+ * 并发池控制器（优化版）
+ * - 使用累加器避免 reduce 遍历
+ * - 节流进度回调
  */
 const runWithConcurrency = async (tasks, files, concurrency, onProgress) => {
   const results = [];
   let completed = 0;
   let index = 0;
-  
+
   // 计算总大小
   const totalSize = files.reduce((sum, file) => sum + file.size, 0);
-  let uploadedSize = 0;
   const fileProgress = new Array(files.length).fill(0);
+
+  // 使用累加器追踪已上传大小，避免每次都 reduce
+  let uploadedSizeCache = 0;
+
+  // 创建节流的进度回调（100ms 间隔）
+  const throttledProgress = onProgress ? createThrottle(onProgress, 100) : null;
 
   // 执行单个任务
   const runTask = async () => {
@@ -85,41 +131,45 @@ const runWithConcurrency = async (tasks, files, concurrency, onProgress) => {
       const currentIndex = index++;
       const task = tasks[currentIndex];
       const file = files[currentIndex];
-      
+      const previousProgress = fileProgress[currentIndex];
+
       try {
         const result = await task((percent) => {
           // 更新当前文件的进度
-          fileProgress[currentIndex] = (file.size * percent) / 100;
-          
-          // 计算总进度
-          const currentTotal = fileProgress.reduce((sum, p) => sum + p, 0);
-          const totalPercent = Math.round((currentTotal / totalSize) * 100);
-          
-          if (onProgress) {
-            onProgress({
+          const newProgress = (file.size * percent) / 100;
+          const delta = newProgress - fileProgress[currentIndex];
+          fileProgress[currentIndex] = newProgress;
+          uploadedSizeCache += delta;
+
+          // 计算总进度（直接使用累加器，不再 reduce）
+          const totalPercent = Math.round((uploadedSizeCache / totalSize) * 100);
+
+          if (throttledProgress) {
+            throttledProgress({
               completed,
               total: tasks.length,
-              percent: totalPercent,
+              percent: Math.min(totalPercent, 99), // 保留 100% 给完成状态
               currentIndex,
               result: null,
             });
           }
         });
-        
+
         results[currentIndex] = result;
         completed++;
-        
-        // 标记该文件已完成
+
+        // 确保文件进度为完整大小
+        const finalDelta = file.size - fileProgress[currentIndex];
         fileProgress[currentIndex] = file.size;
-        
-        if (onProgress) {
-          const currentTotal = fileProgress.reduce((sum, p) => sum + p, 0);
-          const totalPercent = Math.round((currentTotal / totalSize) * 100);
-          
-          onProgress({
+        uploadedSizeCache += finalDelta;
+
+        // 文件完成时立即回调
+        if (throttledProgress) {
+          const totalPercent = Math.round((uploadedSizeCache / totalSize) * 100);
+          throttledProgress({
             completed,
             total: tasks.length,
-            percent: totalPercent,
+            percent: completed === tasks.length ? 100 : Math.min(totalPercent, 99),
             currentIndex,
             result,
           });
@@ -130,7 +180,11 @@ const runWithConcurrency = async (tasks, files, concurrency, onProgress) => {
           error: error.message || '上传失败'
         };
         completed++;
-        fileProgress[currentIndex] = file.size; // 失败也算完成
+
+        // 失败也算完成
+        const finalDelta = file.size - fileProgress[currentIndex];
+        fileProgress[currentIndex] = file.size;
+        uploadedSizeCache += finalDelta;
       }
     }
   };
@@ -141,6 +195,20 @@ const runWithConcurrency = async (tasks, files, concurrency, onProgress) => {
     .map(() => runTask());
 
   await Promise.all(workers);
+
+  // 确保最终进度被回调
+  if (throttledProgress) {
+    throttledProgress.flush();
+    // 强制发送 100% 完成状态
+    onProgress({
+      completed: tasks.length,
+      total: tasks.length,
+      percent: 100,
+      currentIndex: tasks.length - 1,
+      result: results[results.length - 1],
+    });
+  }
+
   return results;
 };
 
@@ -153,8 +221,8 @@ const runWithConcurrency = async (tasks, files, concurrency, onProgress) => {
  */
 export const uploadFiles = async (files, onProgress, options = {}) => {
   const {
-    concurrency = 5, // 默认并发数 5
-    retries = 3,     // 默认重试 3 次
+    concurrency = 5,
+    retries = 3,
   } = options;
 
   try {
@@ -187,9 +255,6 @@ export const uploadFiles = async (files, onProgress, options = {}) => {
 
 /**
  * 上传单个文件（对外接口）
- * @param {File} file - 文件对象
- * @param {Function} onProgress - 进度回调
- * @returns {Promise} 上传结果
  */
 export const uploadFile = async (file, onProgress) => {
   const result = await uploadFiles([file], onProgress, { concurrency: 1 });
@@ -198,24 +263,19 @@ export const uploadFile = async (file, onProgress) => {
 
 /**
  * 验证文件
- * @param {File} file - 文件对象
- * @param {object} options - 验证选项
- * @returns {object} 验证结果
  */
 export const validateFile = (file, options = {}) => {
   const {
-    maxSize = 10 * 1024 * 1024, // 默认 10MB
+    maxSize = 10 * 1024 * 1024,
     allowedTypes = ['image/*'],
   } = options;
 
   const errors = [];
 
-  // 检查文件大小
   if (file.size > maxSize) {
     errors.push(`文件大小不能超过 ${(maxSize / 1024 / 1024).toFixed(0)}MB`);
   }
 
-  // 检查文件类型
   const isValidType = allowedTypes.some((type) => {
     if (type.includes('*')) {
       const [mainType] = type.split('/');

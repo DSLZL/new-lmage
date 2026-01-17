@@ -6,14 +6,11 @@ import { errorHandling, telemetryData } from '../utils/middleware';
 // 获取用户收藏列表
 export async function getUserFavorites(c) {
   try {
-    // 错误处理和遥测数据
     await errorHandling(c);
     telemetryData(c);
 
     const user = c.get('user');
     const userId = user.id;
-
-    console.log('获取用户收藏 - 用户ID:', userId);
 
     // 获取分页参数
     const url = new URL(c.req.url);
@@ -25,16 +22,12 @@ export async function getUserFavorites(c) {
     const userFavoritesKey = `user:${userId}:favorites`;
     let favoriteIds = await c.env.img_url.get(userFavoritesKey, { type: "json" }) || [];
 
-    console.log('用户收藏ID列表:', favoriteIds);
-
     // 获取收藏图片的详细信息
     const favoriteImages = [];
     for (const favoriteId of favoriteIds) {
       try {
-        // 获取图片元数据
         const fileData = await c.env.img_url.getWithMetadata(favoriteId);
         if (fileData && fileData.metadata) {
-          // 检查图片是否属于当前用户或者是公开的
           if (fileData.metadata.userId === userId || fileData.metadata.userId === "anonymous") {
             favoriteImages.push({
               id: favoriteId,
@@ -50,8 +43,6 @@ export async function getUserFavorites(c) {
           }
         }
       } catch (error) {
-        console.error(`获取收藏图片 ${favoriteId} 信息失败:`, error);
-        // 如果某个图片获取失败，从收藏列表中移除
         favoriteIds = favoriteIds.filter(id => id !== favoriteId);
       }
     }
@@ -61,15 +52,13 @@ export async function getUserFavorites(c) {
       await c.env.img_url.put(userFavoritesKey, JSON.stringify(favoriteIds));
     }
 
-    // 按收藏时间排序（最新的在前）
+    // 按收藏时间排序
     favoriteImages.sort((a, b) => b.favoriteTime - a.favoriteTime);
 
     // 分页处理
     const totalItems = favoriteImages.length;
     const totalPages = Math.ceil(totalItems / limit);
     const paginatedImages = favoriteImages.slice(offset, offset + limit);
-
-    console.log(`返回收藏图片: ${paginatedImages.length}/${totalItems}`);
 
     return c.json({
       images: paginatedImages,
@@ -83,7 +72,6 @@ export async function getUserFavorites(c) {
       }
     });
   } catch (error) {
-    console.error('获取用户收藏错误:', error);
     return c.json({ error: '获取收藏列表失败' }, 500);
   }
 }
@@ -91,7 +79,6 @@ export async function getUserFavorites(c) {
 // 添加图片到收藏
 export async function addToFavorites(c) {
   try {
-    // 错误处理和遥测数据
     await errorHandling(c);
     telemetryData(c);
 
@@ -103,15 +90,13 @@ export async function addToFavorites(c) {
       return c.json({ error: '文件ID不能为空' }, 400);
     }
 
-    console.log('添加收藏 - 用户ID:', userId, '文件ID:', fileId);
-
     // 检查文件是否存在
     const fileData = await c.env.img_url.getWithMetadata(fileId);
     if (!fileData || !fileData.metadata) {
       return c.json({ error: '文件不存在' }, 404);
     }
 
-    // 检查文件权限（只能收藏自己的图片或公开图片）
+    // 检查文件权限
     if (fileData.metadata.userId !== userId && fileData.metadata.userId !== "anonymous") {
       return c.json({ error: '无权收藏此文件' }, 403);
     }
@@ -129,25 +114,22 @@ export async function addToFavorites(c) {
     favoriteIds.push(fileId);
     await c.env.img_url.put(userFavoritesKey, JSON.stringify(favoriteIds));
 
-    // 更新文件元数据，标记为已收藏并记录收藏时间
+    // 更新文件元数据
     const updatedMetadata = {
       ...fileData.metadata,
       liked: true,
       favoriteTime: Date.now(),
-      favoriteUserId: userId // 记录是谁收藏的
+      favoriteUserId: userId
     };
 
     await c.env.img_url.put(fileId, "", { metadata: updatedMetadata });
 
-    console.log('收藏添加成功:', fileId);
-
-    return c.json({ 
+    return c.json({
       message: '添加收藏成功',
       fileId: fileId,
       favoriteTime: updatedMetadata.favoriteTime
     });
   } catch (error) {
-    console.error('添加收藏错误:', error);
     return c.json({ error: '添加收藏失败' }, 500);
   }
 }
@@ -155,7 +137,6 @@ export async function addToFavorites(c) {
 // 从收藏中移除图片
 export async function removeFromFavorites(c) {
   try {
-    // 错误处理和遥测数据
     await errorHandling(c);
     telemetryData(c);
 
@@ -166,8 +147,6 @@ export async function removeFromFavorites(c) {
     if (!fileId) {
       return c.json({ error: '文件ID不能为空' }, 400);
     }
-
-    console.log('取消收藏 - 用户ID:', userId, '文件ID:', fileId);
 
     // 获取用户收藏列表
     const userFavoritesKey = `user:${userId}:favorites`;
@@ -182,7 +161,7 @@ export async function removeFromFavorites(c) {
     favoriteIds = favoriteIds.filter(id => id !== fileId);
     await c.env.img_url.put(userFavoritesKey, JSON.stringify(favoriteIds));
 
-    // 更新文件元数据，取消收藏标记
+    // 更新文件元数据
     const fileData = await c.env.img_url.getWithMetadata(fileId);
     if (fileData && fileData.metadata) {
       const updatedMetadata = {
@@ -195,14 +174,11 @@ export async function removeFromFavorites(c) {
       await c.env.img_url.put(fileId, "", { metadata: updatedMetadata });
     }
 
-    console.log('收藏移除成功:', fileId);
-
-    return c.json({ 
+    return c.json({
       message: '取消收藏成功',
       fileId: fileId
     });
   } catch (error) {
-    console.error('取消收藏错误:', error);
     return c.json({ error: '取消收藏失败' }, 500);
   }
 }
@@ -218,18 +194,16 @@ export async function checkFavoriteStatus(c) {
       return c.json({ error: '文件ID不能为空' }, 400);
     }
 
-    // 获取用户收藏列表
     const userFavoritesKey = `user:${userId}:favorites`;
     const favoriteIds = await c.env.img_url.get(userFavoritesKey, { type: "json" }) || [];
 
     const isFavorited = favoriteIds.includes(fileId);
 
-    return c.json({ 
+    return c.json({
       fileId: fileId,
       isFavorited: isFavorited
     });
   } catch (error) {
-    console.error('检查收藏状态错误:', error);
     return c.json({ error: '检查收藏状态失败' }, 500);
   }
 }
@@ -237,7 +211,6 @@ export async function checkFavoriteStatus(c) {
 // 批量操作收藏
 export async function batchFavoriteOperation(c) {
   try {
-    // 错误处理和遥测数据
     await errorHandling(c);
     telemetryData(c);
 
@@ -253,19 +226,15 @@ export async function batchFavoriteOperation(c) {
       return c.json({ error: '操作类型无效' }, 400);
     }
 
-    console.log(`批量${operation === 'add' ? '添加' : '移除'}收藏 - 用户ID:`, userId, '文件数量:', fileIds.length);
-
     const results = [];
-    
+
     for (const fileId of fileIds) {
       try {
         if (operation === 'add') {
-          // 模拟调用添加收藏的逻辑
           const mockRequest = { req: { param: () => fileId }, get: () => user, env: c.env };
           await addToFavorites(mockRequest);
           results.push({ fileId, success: true, message: '添加成功' });
         } else {
-          // 模拟调用移除收藏的逻辑
           const mockRequest = { req: { param: () => fileId }, get: () => user, env: c.env };
           await removeFromFavorites(mockRequest);
           results.push({ fileId, success: true, message: '移除成功' });
@@ -288,7 +257,6 @@ export async function batchFavoriteOperation(c) {
       }
     });
   } catch (error) {
-    console.error('批量收藏操作错误:', error);
     return c.json({ error: '批量操作失败' }, 500);
   }
 }

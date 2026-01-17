@@ -46,7 +46,6 @@ export async function getUserTags(c) {
       total: userTags.length
     });
   } catch (error) {
-    console.error('获取标签列表错误:', error);
     return c.json({ error: '获取标签列表失败' }, 500);
   }
 }
@@ -109,7 +108,6 @@ export async function createTag(c) {
       tag: newTag
     });
   } catch (error) {
-    console.error('创建标签错误:', error);
     return c.json({ error: '创建标签失败' }, 500);
   }
 }
@@ -216,7 +214,6 @@ export async function updateTag(c) {
       tag: updatedTag
     });
   } catch (error) {
-    console.error('更新标签错误:', error);
     return c.json({ error: '更新标签失败' }, 500);
   }
 }
@@ -289,7 +286,6 @@ export async function deleteTag(c) {
       deletedTag: tagToDelete
     });
   } catch (error) {
-    console.error('删除标签错误:', error);
     return c.json({ error: '删除标签失败' }, 500);
   }
 }
@@ -325,7 +321,6 @@ export async function batchTagOperation(c) {
         return c.json({ error: '不支持的操作类型' }, 400);
     }
   } catch (error) {
-    console.error('批量标签操作错误:', error);
     return c.json({ error: '批量操作失败' }, 500);
   }
 }
@@ -474,7 +469,6 @@ export async function getTagImages(c) {
       total: images.length
     });
   } catch (error) {
-    console.error('获取标签图片错误:', error);
     return c.json({ error: '获取标签图片失败' }, 500);
   }
 }

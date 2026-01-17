@@ -61,7 +61,6 @@ export async function register(c) {
       token
     });
   } catch (error) {
-    console.error('注册错误:', error);
     return c.json({ error: '注册失败' }, 500);
   }
 }
@@ -105,7 +104,6 @@ export async function login(c) {
       token
     });
   } catch (error) {
-    console.error('登录错误:', error);
     return c.json({ error: '登录失败' }, 500);
   }
 }
@@ -129,7 +127,6 @@ export async function getCurrentUser(c) {
     const { password: _, ...userWithoutPassword } = userFull;
     return c.json({ user: userWithoutPassword });
   } catch (error) {
-    console.error('获取用户信息错误:', error);
     return c.json({ error: '获取用户信息失败' }, 500);
   }
 }
@@ -183,7 +180,6 @@ export async function updateUserAvatar(c) {
       user: userWithoutPassword 
     });
   } catch (error) {
-    console.error('更新头像错误:', error);
     return c.json({ error: '更新头像失败' }, 500);
   }
 }
@@ -222,7 +218,6 @@ export async function getUserProfile(c) {
       }
     });
   } catch (error) {
-    console.error('获取用户资料错误:', error);
     return c.json({ error: '获取用户资料失败' }, 500);
   }
 }
@@ -298,7 +293,6 @@ export async function updateUserProfile(c) {
       user: userWithoutPassword 
     });
   } catch (error) {
-    console.error('更新资料错误:', error);
     return c.json({ error: '更新资料失败' }, 500);
   }
 }
@@ -354,7 +348,6 @@ export async function changePassword(c) {
     
     return c.json({ message: '密码修改成功' });
   } catch (error) {
-    console.error('修改密码错误:', error);
     return c.json({ error: '修改密码失败' }, 500);
   }
 }

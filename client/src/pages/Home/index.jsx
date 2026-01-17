@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import toast from 'react-hot-toast';
-import { uploadFiles, validateFile } from '@/services/uploadService';
+import { uploadFiles } from '@/services/uploadService';
 import {
   CloudArrowUp,
   Image as ImageIcon,
@@ -19,8 +19,7 @@ const HomePage = () => {
   const [uploadResults, setUploadResults] = useState([]);
   const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0, percent: 0 });
 
-  const handleUpload = async (files) => {
-    // 立即显示上传状态并开始上传
+  const handleUpload = useCallback(async (files) => {
     setUploading(true);
     setUploadResults([]);
     setUploadProgress({ completed: 0, total: files.length, percent: 0 });
@@ -43,18 +42,7 @@ const HomePage = () => {
     } finally {
       setUploading(false);
     }
-  };
-        setUploadResults(result.data);
-        toast.success(`搞定！成功添加了 ${result.summary.success} 张涂鸦。`);
-      } else {
-        toast.error(result.error);
-      }
-    } catch (error) {
-      toast.error('出错了，怎么回事？');
-    } finally {
-      setUploading(false);
-    }
-  };
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: handleUpload,
@@ -63,12 +51,12 @@ const HomePage = () => {
     disabled: uploading,
   });
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = useCallback((text) => {
     navigator.clipboard.writeText(text);
     toast.success('已复制到剪贴板！');
-  };
+  }, []);
 
-  const exportMetadata = () => {
+  const exportMetadata = useCallback(() => {
     const successResults = uploadResults.filter(r => r.success);
     const metadata = {
       timestamp: new Date().toISOString(),
@@ -84,21 +72,25 @@ const HomePage = () => {
     a.download = `diary-entries-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  };
+  }, [uploadResults]);
 
-  const copyAllUrls = () => {
+  const copyAllUrls = useCallback(() => {
     const urls = uploadResults.filter(r => r.success).map(r => window.location.origin + r.data.src).join('\n');
     copyToClipboard(urls);
-  };
+  }, [uploadResults, copyToClipboard]);
 
-  const copyMarkdownList = () => {
+  const copyMarkdownList = useCallback(() => {
     const markdown = uploadResults.filter(r => r.success).map(r => `![${r.filename}](${window.location.origin}${r.data.src})`).join('\n');
     copyToClipboard(markdown);
-  };
+  }, [uploadResults, copyToClipboard]);
 
-  const retryFailedImage = (index) => {
+  const retryFailedImage = useCallback((index) => {
     toast("手动重试功能还在开发中...", { icon: '🚧' });
-  };
+  }, []);
+
+  const clearResults = useCallback(() => {
+    setUploadResults([]);
+  }, []);
 
   const successCount = uploadResults.filter(r => r.success).length;
 
@@ -134,7 +126,7 @@ const HomePage = () => {
             正在绘制中... {Math.round(uploadProgress.percent)}%
           </div>
           <div className="w-full h-4 border-2 border-pencil rounded-full overflow-hidden p-0.5">
-            <div 
+            <div
               className="h-full bg-marker-yellow transition-all duration-300 rounded-full"
               style={{ width: `${uploadProgress.percent}%` }}
             ></div>
@@ -165,8 +157,8 @@ const HomePage = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {uploadResults.map((result, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className={`
                   bg-white p-3 shadow-sketch border border-gray-200 relative transition-transform hover:scale-105 hover:z-10
                   ${index % 2 === 0 ? 'rotate-slight-1' : 'rotate-slight-n2'}
@@ -174,7 +166,7 @@ const HomePage = () => {
               >
                 {/* Visual Tape */}
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/40 backdrop-blur-sm -rotate-2 shadow-tape"></div>
-                
+
                 {result.success ? (
                   <>
                     <div className="aspect-video bg-gray-50 overflow-hidden mb-3 border border-gray-100">
@@ -185,10 +177,10 @@ const HomePage = () => {
                       />
                     </div>
                     <div className="flex gap-2">
-                       <input 
-                         type="text" 
-                         value={window.location.origin + result.data.src} 
-                         readOnly 
+                       <input
+                         type="text"
+                         value={window.location.origin + result.data.src}
+                         readOnly
                          className="input-hand text-sm flex-1"
                          onClick={(e) => e.target.select()}
                        />
@@ -210,9 +202,9 @@ const HomePage = () => {
           </div>
 
           <div className="mt-12 text-center">
-            <button 
-              className="btn-primary text-2xl px-8 py-3 rotate-slight-n1" 
-              onClick={() => { setUploadResults([]); }}
+            <button
+              className="btn-primary text-2xl px-8 py-3 rotate-slight-n1"
+              onClick={clearResults}
             >
               <CloudArrowUp className="inline mr-2" />
               再来一张

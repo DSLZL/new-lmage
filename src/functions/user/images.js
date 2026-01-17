@@ -6,15 +6,11 @@ import { errorHandling, telemetryData } from '../utils/middleware';
 // 获取用户图片列表
 export async function getUserImages(c) {
   try {
-    // 错误处理和遥测数据
     await errorHandling(c);
     telemetryData(c);
 
     const user = c.get('user');
     const userId = user.id;
-
-    console.log('获取用户图片 - 用户信息:', JSON.stringify(user));
-    console.log('获取用户图片 - 用户ID:', userId);
 
     // 获取分页参数
     const url = new URL(c.req.url);
@@ -22,14 +18,9 @@ export async function getUserImages(c) {
     const limit = parseInt(url.searchParams.get('limit') || '20');
     const offset = (page - 1) * limit;
 
-    console.log('获取用户图片 - 分页参数:', { page, limit, offset });
-
     // 获取用户的文件列表
     const userFilesKey = `user:${userId}:files`;
-    console.log('获取用户图片 - 文件列表键:', userFilesKey);
-
     let userFiles = await c.env.img_url.get(userFilesKey, { type: "json" }) || [];
-    console.log('获取用户图片 - 文件列表:', userFiles.length ? `找到${userFiles.length}个文件` : '列表为空');
 
     // 按上传时间倒序排序
     userFiles.sort((a, b) => b.uploadTime - a.uploadTime);
@@ -48,7 +39,6 @@ export async function getUserImages(c) {
       }
     });
   } catch (error) {
-    console.error('获取用户图片错误:', error);
     return c.json({ error: '获取用户图片失败' }, 500);
   }
 }
@@ -56,7 +46,6 @@ export async function getUserImages(c) {
 // 删除用户图片
 export async function deleteUserImage(c) {
   try {
-    // 错误处理和遥测数据
     await errorHandling(c);
     telemetryData(c);
 
@@ -92,12 +81,10 @@ export async function deleteUserImage(c) {
     await c.env.img_url.put(userFilesKey, JSON.stringify(userFiles));
 
     // 删除文件元数据
-    // 注意：我们不会从Telegram删除文件，只是删除引用
     await c.env.img_url.delete(fileId);
 
     return c.json({ message: '文件删除成功' });
   } catch (error) {
-    console.error('删除用户图片错误:', error);
     return c.json({ error: '删除用户图片失败' }, 500);
   }
 }
@@ -105,7 +92,6 @@ export async function deleteUserImage(c) {
 // 更新图片信息
 export async function updateImageInfo(c) {
   try {
-    // 错误处理和遥测数据
     await errorHandling(c);
     telemetryData(c);
 
@@ -168,7 +154,6 @@ export async function updateImageInfo(c) {
       }
     });
   } catch (error) {
-    console.error('更新图片信息错误:', error);
     return c.json({ error: '更新图片信息失败' }, 500);
   }
 }
@@ -176,7 +161,6 @@ export async function updateImageInfo(c) {
 // 搜索用户图片
 export async function searchUserImages(c) {
   try {
-    // 错误处理和遥测数据
     await errorHandling(c);
     telemetryData(c);
 
@@ -210,7 +194,6 @@ export async function searchUserImages(c) {
 
     return c.json({ files: userFiles });
   } catch (error) {
-    console.error('搜索用户图片错误:', error);
     return c.json({ error: '搜索用户图片失败' }, 500);
   }
 }

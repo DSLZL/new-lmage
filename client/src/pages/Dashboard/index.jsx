@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useImageStore } from '@/store/imageStore';
 import { useFavoriteStore } from '@/store/favoriteStore';
@@ -11,10 +11,8 @@ import {
   CheckCircle,
   Trash,
   XCircle,
-  Funnel,
   SortAscending,
   SortDescending,
-  File
 } from '@phosphor-icons/react';
 import ImageCard from '@/components/ImageCard';
 
@@ -45,12 +43,13 @@ const DashboardPage = () => {
     fetchImages();
   }, [fetchImages]);
 
-  const handleDeleteClick = (image) => {
+  // 使用 useCallback 缓存回调函数，避免 ImageCard 不必要的重渲染
+  const handleDeleteClick = useCallback((image) => {
     setImageToDelete(image);
     setShowDeleteModal(true);
-  };
+  }, []);
 
-  const confirmDelete = async () => {
+  const confirmDelete = useCallback(async () => {
     if (!imageToDelete) return;
     const result = await deleteImage(imageToDelete.id);
     if (result.success) {
@@ -60,9 +59,13 @@ const DashboardPage = () => {
     } else {
       toast.error(result.error);
     }
-  };
+  }, [imageToDelete, deleteImage]);
 
-  const handleBatchDelete = async () => {
+  const closeDeleteModal = useCallback(() => {
+    setShowDeleteModal(false);
+  }, []);
+
+  const handleBatchDelete = useCallback(async () => {
     if (selectedImages.size === 0) return;
     if (window.confirm(`确定要擦除这 ${selectedImages.size} 张涂鸦吗？`)) {
       const result = await deleteImages(Array.from(selectedImages));
@@ -72,14 +75,34 @@ const DashboardPage = () => {
         toast.error(result.error);
       }
     }
-  };
+  }, [selectedImages, deleteImages]);
 
-  const copyImageUrl = (image) => {
+  const copyImageUrl = useCallback((image) => {
     navigator.clipboard.writeText(window.location.origin + image.src);
     toast.success('链接已复制！');
-  };
+  }, []);
 
-  const isFavorite = (imageId) => favorites.has(imageId);
+  // 使用 useCallback 包装 isFavorite 检查
+  const checkIsFavorite = useCallback((imageId) => favorites.has(imageId), [favorites]);
+
+  // 缓存空函数，避免每次都创建新的
+  const handleImageClick = useCallback((img) => {
+    // 预览功能占位
+  }, []);
+
+  const handleExitSelection = useCallback(() => {
+    toggleSelectionMode();
+    clearSelection();
+  }, [toggleSelectionMode, clearSelection]);
+
+  const handleSortToggle = useCallback(() => {
+    setSortBy(filters.sortBy === 'newest' ? 'oldest' : 'newest');
+  }, [filters.sortBy, setSortBy]);
+
+  const handleSetGridView = useCallback(() => setViewMode('grid'), [setViewMode]);
+  const handleSetListView = useCallback(() => setViewMode('list'), [setViewMode]);
+
+  const navigateToHome = useCallback(() => navigate('/'), [navigate]);
 
   return (
     <div className="animate-in fade-in duration-500">
@@ -103,35 +126,35 @@ const DashboardPage = () => {
                 <button onClick={handleBatchDelete} className="btn-doodle text-sm py-1 px-2 text-red-500 hover:bg-red-50">
                    <Trash size={18} />
                 </button>
-                <button onClick={() => { toggleSelectionMode(); clearSelection(); }} className="btn-doodle text-sm py-1 px-2">
+                <button onClick={handleExitSelection} className="btn-doodle text-sm py-1 px-2">
                    <XCircle size={18} />
                 </button>
              </div>
           ) : (
              <>
-               <button 
-                 onClick={toggleSelectionMode} 
+               <button
+                 onClick={toggleSelectionMode}
                  className="btn-doodle flex items-center gap-1 text-sm py-1 px-3"
                  title="批量选择"
                >
                  <CheckCircle size={20} /> 选择
                </button>
-               <button 
-                 onClick={() => setSortBy(filters.sortBy === 'newest' ? 'oldest' : 'newest')} 
+               <button
+                 onClick={handleSortToggle}
                  className="btn-doodle flex items-center gap-1 text-sm py-1 px-3"
                  title="排序"
                >
                  {filters.sortBy === 'newest' ? <SortDescending size={20} /> : <SortAscending size={20} />}
                </button>
                <div className="flex bg-gray-100 p-1 rounded-md rotate-slight-1">
-                 <button 
-                   onClick={() => setViewMode('grid')} 
+                 <button
+                   onClick={handleSetGridView}
                    className={`p-1 rounded ${filters.viewMode === 'grid' ? 'bg-white shadow-sm' : 'text-gray-400'}`}
                  >
                    <SquaresFour size={20} />
                  </button>
-                 <button 
-                   onClick={() => setViewMode('list')} 
+                 <button
+                   onClick={handleSetListView}
                    className={`p-1 rounded ${filters.viewMode === 'list' ? 'bg-white shadow-sm' : 'text-gray-400'}`}
                  >
                    <List size={20} />
@@ -151,15 +174,15 @@ const DashboardPage = () => {
         <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50/50">
           <ImageIcon size={64} className="mx-auto text-gray-300 mb-4" />
           <h3 className="text-2xl font-hand text-gray-500">这里空空如也！</h3>
-          <button onClick={() => navigate('/')} className="btn-primary mt-6 rotate-slight-n1">
+          <button onClick={navigateToHome} className="btn-primary mt-6 rotate-slight-n1">
             <CloudArrowUp className="inline mr-2" />
             开始记录
           </button>
         </div>
       ) : (
         <div className={`
-          ${filters.viewMode === 'grid' 
-            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8' 
+          ${filters.viewMode === 'grid'
+            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'
             : 'space-y-4'
           }
         `}>
@@ -169,13 +192,13 @@ const DashboardPage = () => {
                 key={image.id}
                 image={image}
                 isSelected={selectedImages.has(image.id)}
-                isFavorite={isFavorite(image.id)}
+                isFavorite={checkIsFavorite(image.id)}
                 showSelection={isSelectionMode}
                 onSelect={toggleImageSelection}
                 onFavorite={toggleFavorite}
                 onCopy={copyImageUrl}
                 onDelete={handleDeleteClick}
-                onClick={(img) => console.log('View', img)}
+                onClick={handleImageClick}
               />
             ) : (
               <div key={image.id} className="flex items-center gap-4 bg-white p-4 border-b border-dashed border-gray-200">
@@ -191,13 +214,13 @@ const DashboardPage = () => {
 
       {/* Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowDeleteModal(false)}>
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={closeDeleteModal}>
           <div className="bg-white p-8 max-w-sm w-full shadow-sketch rotate-slight-1 relative" onClick={e => e.stopPropagation()}>
              <div className="tape-top"></div>
              <h3 className="text-2xl font-hand font-bold text-red-500 mb-4 text-center">撕掉这一页？</h3>
              <p className="text-center font-hand text-gray-500 mb-6">撕了可就粘不回去了。</p>
              <div className="flex gap-4 justify-center">
-                <button onClick={() => setShowDeleteModal(false)} className="btn-doodle">留着吧</button>
+                <button onClick={closeDeleteModal} className="btn-doodle">留着吧</button>
                 <button onClick={confirmDelete} className="btn-doodle bg-red-100 hover:bg-red-200 text-red-600 border-red-200">是的，擦掉它</button>
              </div>
           </div>

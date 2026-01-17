@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import {
@@ -12,16 +12,28 @@ import {
   Gear
 } from '@phosphor-icons/react';
 
-const Header = () => {
+const Header = memo(() => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     setShowUserMenu(false);
     navigate('/login');
-  };
+  }, [logout, navigate]);
+
+  const toggleUserMenu = useCallback(() => {
+    setShowUserMenu(prev => !prev);
+  }, []);
+
+  const closeUserMenu = useCallback(() => {
+    setShowUserMenu(false);
+  }, []);
+
+  const navigateToHome = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
 
   return (
     <header className="flex justify-between items-center py-2 px-1 relative z-30">
@@ -33,7 +45,7 @@ const Header = () => {
       <div className="flex items-center gap-3 ml-auto">
         <button
           className="btn-primary flex items-center gap-2 text-pencil"
-          onClick={() => navigate('/')}
+          onClick={navigateToHome}
         >
           <CloudArrowUp size={24} />
           <span className="hidden sm:inline">绘画</span>
@@ -43,7 +55,7 @@ const Header = () => {
           <div className="relative">
             <button
               className="flex items-center gap-2 px-3 py-2 hover:bg-white/50 rounded-md border border-transparent hover:border-dashed hover:border-gray-400 transition-all font-hand text-lg"
-              onClick={() => setShowUserMenu(!showUserMenu)}
+              onClick={toggleUserMenu}
             >
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-gray-400 overflow-hidden">
                 {user?.avatarUrl ? (
@@ -58,18 +70,18 @@ const Header = () => {
 
             {showUserMenu && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowUserMenu(false)} />
+                <div className="fixed inset-0 z-10" onClick={closeUserMenu} />
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-sketch border border-gray-200 p-2 z-20 rotate-1 transform origin-top-right">
                    {/* Tape on Dropdown */}
                    <div className="absolute -top-3 right-8 w-12 h-6 bg-white/40 backdrop-blur-sm rotate-2 shadow-tape"></div>
 
-                   <Link to="/dashboard" className="flex items-center gap-2 p-2 hover:bg-marker-yellow/30 rounded font-hand text-lg" onClick={() => setShowUserMenu(false)}>
+                   <Link to="/dashboard" className="flex items-center gap-2 p-2 hover:bg-marker-yellow/30 rounded font-hand text-lg" onClick={closeUserMenu}>
                      <ImageIcon size={20} /> 我的涂鸦
                    </Link>
-                   <Link to="/favorites" className="flex items-center gap-2 p-2 hover:bg-marker-pink/30 rounded font-hand text-lg" onClick={() => setShowUserMenu(false)}>
+                   <Link to="/favorites" className="flex items-center gap-2 p-2 hover:bg-marker-pink/30 rounded font-hand text-lg" onClick={closeUserMenu}>
                      <Star size={20} /> 收藏
                    </Link>
-                   <Link to="/settings" className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded font-hand text-lg" onClick={() => setShowUserMenu(false)}>
+                   <Link to="/settings" className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded font-hand text-lg" onClick={closeUserMenu}>
                      <Gear size={20} /> 设置
                    </Link>
                    <div className="h-px bg-gray-200 my-1 border-b border-dashed"></div>
@@ -89,6 +101,8 @@ const Header = () => {
       </div>
     </header>
   );
-};
+});
+
+Header.displayName = 'Header';
 
 export default Header;

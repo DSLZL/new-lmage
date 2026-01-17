@@ -2,6 +2,33 @@ import { create } from 'zustand';
 import axios from 'axios';
 
 /**
+ * 并发控制器 - 限制同时执行的请求数量
+ */
+const runWithConcurrencyLimit = async (tasks, limit = 5) => {
+  const results = [];
+  let index = 0;
+
+  const runTask = async () => {
+    while (index < tasks.length) {
+      const currentIndex = index++;
+      try {
+        results[currentIndex] = await tasks[currentIndex]();
+      } catch (error) {
+        results[currentIndex] = { error: error.message };
+      }
+    }
+  };
+
+  // 创建并发池
+  const workers = Array(Math.min(limit, tasks.length))
+    .fill(null)
+    .map(() => runTask());
+
+  await Promise.all(workers);
+  return results;
+};
+
+/**
  * 图片状态管理
  * 管理用户上传的图片列表、搜索、排序等
  */
@@ -11,7 +38,7 @@ const useImageStore = create((set, get) => ({
   currentImage: null,
   isLoading: false,
   error: null,
-  
+
   // 分页
   pagination: {
     page: 1,
@@ -19,15 +46,15 @@ const useImageStore = create((set, get) => ({
     total: 0,
     totalPages: 0,
   },
-  
+
   // 筛选和排序
   filters: {
     query: '',
     tag: '',
-    sortBy: 'newest', // 'newest' | 'oldest' | 'largest' | 'smallest' | 'name'
-    viewMode: 'grid', // 'grid' | 'list' | 'timeline'
+    sortBy: 'newest',
+    viewMode: 'grid',
   },
-  
+
   // 选择模式
   selectedImages: new Set(),
   isSelectionMode: false,
@@ -51,7 +78,7 @@ const useImageStore = create((set, get) => ({
       const response = await axios.get(`/api/images?${params}`);
       const { files, pagination } = response.data;
 
-      // 映射数据格式：后端返回 url，前端使用 src
+      // 映射数据格式
       const mappedFiles = files.map((file) => ({
         ...file,
         src: file.url || `/file/${file.id}`,
@@ -145,7 +172,6 @@ const useImageStore = create((set, get) => ({
     try {
       await axios.delete(`/api/images/${imageId}`);
 
-      // 从列表中移除
       set((state) => ({
         images: state.images.filter((img) => img.id !== imageId),
         isLoading: false,
@@ -164,15 +190,16 @@ const useImageStore = create((set, get) => ({
     }
   },
 
-  // ========== 批量删除图片 ==========
+  // ========== 批量删除图片（带并发限制） ==========
   deleteImages: async (imageIds) => {
     set({ isLoading: true, error: null });
 
     try {
-      // 并发删除
-      await Promise.all(
-        imageIds.map((id) => axios.delete(`/api/images/${id}`))
-      );
+      // 创建删除任务数组
+      const deleteTasks = imageIds.map((id) => () => axios.delete(`/api/images/${id}`));
+
+      // 使用并发池执行，最多5个并发请求
+      await runWithConcurrencyLimit(deleteTasks, 5);
 
       // 从列表中移除
       set((state) => ({
@@ -203,7 +230,6 @@ const useImageStore = create((set, get) => ({
       const response = await axios.put(`/api/images/${imageId}`, data);
       const { file } = response.data;
 
-      // 更新列表中的图片
       set((state) => ({
         images: state.images.map((img) =>
           img.id === imageId ? { ...img, ...file } : img
@@ -228,7 +254,7 @@ const useImageStore = create((set, get) => ({
   toggleSelectionMode: () => {
     set((state) => ({
       isSelectionMode: !state.isSelectionMode,
-      selectedImages: new Set(), // 切换时清空选择
+      selectedImages: new Set(),
     }));
   },
 

@@ -1,32 +1,36 @@
+import { memo, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useImageStore } from '@/store/imageStore';
 import { useFavoriteStore } from '@/store/favoriteStore';
-import { 
-  House, 
-  Image as ImageIcon, 
-  Star, 
-  Gear, 
-  Question 
+import {
+  House,
+  Image as ImageIcon,
+  Star,
+  Gear,
+  Question
 } from '@phosphor-icons/react';
 
-const Sidebar = () => {
+const Sidebar = memo(() => {
   const location = useLocation();
   const { isAuthenticated } = useAuthStore();
   const { images } = useImageStore();
   const { favorites } = useFavoriteStore();
 
-  const menuItems = [
+  // 缓存菜单项配置
+  const menuItems = useMemo(() => [
     { path: '/', icon: House, label: '首页', public: true },
     { path: '/dashboard', icon: ImageIcon, label: '图库', badge: images.length, requireAuth: true },
     { path: '/favorites', icon: Star, label: '收藏', badge: favorites.size, requireAuth: true },
     { path: '/settings', icon: Gear, label: '设置', requireAuth: true },
     { path: '/help', icon: Question, label: '帮助', public: true },
-  ];
+  ], [images.length, favorites.size]);
 
-  const filterMenuItems = (items) => {
-    return items.filter((item) => item.public || (item.requireAuth && isAuthenticated));
-  };
+  // 缓存过滤后的菜单项
+  const filteredMenuItems = useMemo(() =>
+    menuItems.filter((item) => item.public || (item.requireAuth && isAuthenticated)),
+    [menuItems, isAuthenticated]
+  );
 
   const isActive = (path) => location.pathname === path;
 
@@ -43,17 +47,17 @@ const Sidebar = () => {
         </div>
 
         <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
-          {filterMenuItems(menuItems).map((item) => {
+          {filteredMenuItems.map((item) => {
              const Icon = item.icon;
              const active = isActive(item.path);
-             
+
              return (
                <Link
                  key={item.path}
                  to={item.path}
                  className={`flex items-center gap-3 px-4 py-3 text-xl transition-all duration-300 group ${
-                   active 
-                     ? 'text-pencil font-bold translate-x-2' 
+                   active
+                     ? 'text-pencil font-bold translate-x-2'
                      : 'text-gray-500 hover:text-pencil hover:rotate-slight-1'
                  }`}
                >
@@ -70,7 +74,7 @@ const Sidebar = () => {
              );
           })}
         </nav>
-        
+
         <div className="p-4 text-center text-gray-400 text-sm border-t-2 border-dashed border-gray-200">
            ~ 始于 2026 ~
         </div>
@@ -78,7 +82,7 @@ const Sidebar = () => {
 
       {/* Mobile Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-dashed border-gray-300 z-50 px-4 py-2 flex justify-around shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-        {filterMenuItems(menuItems).map((item) => {
+        {filteredMenuItems.map((item) => {
            const Icon = item.icon;
            const active = isActive(item.path);
            return (
@@ -97,6 +101,8 @@ const Sidebar = () => {
       </nav>
     </>
   );
-};
+});
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;
