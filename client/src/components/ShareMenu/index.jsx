@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import toast from 'react-hot-toast';
-import './ShareMenu.css';
 
 /**
  * 分享菜单组件

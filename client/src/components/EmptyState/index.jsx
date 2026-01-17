@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { HiOutlineInbox } from 'react-icons/hi';
-import './EmptyState.css';
 
 /**
  * 空状态组件 - 用于显示无数据时的提示

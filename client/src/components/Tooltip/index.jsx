@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import './Tooltip.css';
 
 /**
  * 工具提示组件

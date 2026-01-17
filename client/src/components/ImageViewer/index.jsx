@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import toast from 'react-hot-toast';
-import './ImageViewer.css';
 
 /**
  * 图片查看器组件 - 支持缩放、旋转、下载等功能

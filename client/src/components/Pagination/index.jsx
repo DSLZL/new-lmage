@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
-import './Pagination.css';
 
 /**
  * 分页组件

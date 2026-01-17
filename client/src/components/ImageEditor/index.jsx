@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import toast from 'react-hot-toast';
-import './ImageEditor.css';
 
 /**
  * 图片编辑器组件 - 支持裁剪、滤镜、调整等功能

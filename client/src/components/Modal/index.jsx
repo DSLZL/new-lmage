@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { HiX } from 'react-icons/hi';
-import './Modal.css';
 
 /**
  * 通用模态框组件

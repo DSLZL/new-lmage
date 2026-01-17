@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
-import './Loading.css';
 
 /**
  * 加载组件 - 多种样式

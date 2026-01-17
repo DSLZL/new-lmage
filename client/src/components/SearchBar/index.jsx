@@ -9,7 +9,6 @@ import {
   HiOutlineDocument,
   HiOutlinePhotograph,
 } from 'react-icons/hi';
-import './SearchBar.css';
 
 /**
  * 搜索栏组件

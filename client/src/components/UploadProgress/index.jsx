@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
-import './UploadProgress.css';
 
 /**
  * 上传进度组件 - 显示文件上传进度

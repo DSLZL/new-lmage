@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { FiGithub, FiHelpCircle, FiSend } from 'react-icons/fi';
-import './Footer.css';
 
 /**
  * 底部组件
