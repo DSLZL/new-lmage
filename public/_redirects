@@ -1,0 +1,13 @@
+# SPA 路由配置 - 所有非文件请求都返回 index.html
+# Cloudflare Pages 会自动识别这个文件
+
+# API 路由保持不变
+/api/* 200
+/file/* 200
+
+# 静态资源保持不变
+/assets/* 200
+/images/* 200
+
+# 所有其他路由都返回 index.html（让前端路由接管）
+/* /index.html 200
