@@ -286,3 +286,332 @@ body.dark-mode .link-item label {
     flex-direction: column;
   }
 }
+
+
+/* 批量上传结果 */
+.upload-result-batch {
+  margin-top: var(--spacing-xl);
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing);
+}
+
+.result-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.result-summary .success-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--success-color);
+}
+
+.result-summary h3 {
+  font-size: var(--font-2xl);
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0;
+}
+
+body.dark-mode .result-summary h3 {
+  color: var(--dark-text);
+}
+
+.result-summary p {
+  font-size: var(--font-sm);
+  color: var(--text-light);
+  margin: 0;
+}
+
+body.dark-mode .result-summary p {
+  color: var(--dark-text-light);
+}
+
+.result-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+/* 图片列表 */
+.result-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  max-height: 500px;
+  overflow-y: auto;
+  padding: var(--spacing-sm);
+  background: var(--bg-color);
+  border-radius: var(--radius);
+}
+
+body.dark-mode .result-list {
+  background: var(--dark-bg);
+}
+
+.result-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.result-list::-webkit-scrollbar-track {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+body.dark-mode .result-list::-webkit-scrollbar-track {
+  background: var(--dark-border);
+}
+
+.result-list::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+.result-list::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+/* 结果项 */
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing);
+  padding: var(--spacing);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  transition: all var(--transition);
+}
+
+body.dark-mode .result-item {
+  background: var(--dark-card-bg);
+  border-color: var(--dark-border);
+}
+
+.result-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow);
+}
+
+.result-item.success {
+  border-left: 3px solid var(--success-color);
+}
+
+.result-item.error {
+  border-left: 3px solid var(--error-color);
+  background: rgba(var(--error-rgb), 0.05);
+}
+
+.result-thumbnail {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--bg-color);
+  flex-shrink: 0;
+}
+
+body.dark-mode .result-thumbnail {
+  background: var(--dark-bg);
+}
+
+.error-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--error-rgb), 0.1);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.error-icon-wrapper svg {
+  width: 32px;
+  height: 32px;
+  color: var(--error-color);
+}
+
+.result-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.result-filename {
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: var(--font-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dark-mode .result-filename {
+  color: var(--dark-text);
+}
+
+.result-url-group {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+}
+
+.result-url-input {
+  flex: 1;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-light);
+  font-size: var(--font-xs);
+  font-family: monospace;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+body.dark-mode .result-url-input {
+  background: var(--dark-bg);
+  border-color: var(--dark-border);
+  color: var(--dark-text-light);
+}
+
+.result-url-input:hover,
+.result-url-input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.error-message {
+  color: var(--error-color);
+  font-size: var(--font-xs);
+}
+
+.btn-icon {
+  padding: var(--spacing-xs);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.dark-mode .btn-icon {
+  border-color: var(--dark-border);
+  color: var(--dark-text-light);
+}
+
+.btn-icon:hover {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  transform: scale(1.1);
+}
+
+.btn-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.retry-btn {
+  flex-shrink: 0;
+}
+
+.result-footer {
+  margin-top: var(--spacing-lg);
+  display: flex;
+  justify-content: center;
+}
+
+/* 进度条优化 */
+.upload-progress {
+  padding: var(--spacing-xl);
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+body.dark-mode .upload-progress {
+  background: var(--dark-card-bg);
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.progress-text {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+body.dark-mode .progress-text {
+  color: var(--dark-text);
+}
+
+.progress-percent {
+  font-size: var(--font-2xl);
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.progress-bar-container {
+  height: 8px;
+  background: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+body.dark-mode .progress-bar-container {
+  background: var(--dark-border);
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .result-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .result-actions {
+    width: 100%;
+  }
+
+  .result-actions .btn {
+    flex: 1;
+  }
+
+  .result-thumbnail,
+  .error-icon-wrapper {
+    width: 60px;
+    height: 60px;
+  }
+
+  .result-list {
+    max-height: 400px;
+  }
+}

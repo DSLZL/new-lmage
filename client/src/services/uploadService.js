@@ -1,59 +1,135 @@
 import { upload } from '@/utils/request';
-import toast from 'react-hot-toast';
 
 /**
- * 上传服务
- * 处理文件上传相关的业务逻辑
+ * 上传服务 - 支持并发控制的批量上传
  */
 
 /**
- * 上传单个文件
+ * 上传单个文件（内部方法）
  * @param {File} file - 文件对象
- * @param {Function} onProgress - 进度回调
+ * @param {number} retries - 重试次数
  * @returns {Promise} 上传结果
  */
-export const uploadFile = async (file, onProgress) => {
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
+const uploadSingleFile = async (file, retries = 3) => {
+  const formData = new FormData();
+  formData.append('file', file);
 
-    const response = await upload('/upload', formData, onProgress);
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await upload('/upload', formData);
+      return {
+        success: true,
+        filename: file.name,
+        size: file.size,
+        type: file.type,
+        data: response.data,
+        uploadTime: new Date().toISOString(),
+      };
+    } catch (error) {
+      if (attempt === retries - 1) {
+        return {
+          success: false,
+          filename: file.name,
+          size: file.size,
+          type: file.type,
+          error: error.response?.data?.error || error.message || '上传失败',
+        };
+      }
+      // 重试前等待一下
+      await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+    }
+  }
+};
+
+/**
+ * 并发池控制器
+ * @param {Array} tasks - 任务数组
+ * @param {number} concurrency - 并发数
+ * @param {Function} onProgress - 进度回调
+ * @returns {Promise<Array>} 所有任务结果
+ */
+const runWithConcurrency = async (tasks, concurrency, onProgress) => {
+  const results = [];
+  const executing = [];
+  let completed = 0;
+
+  for (const [index, task] of tasks.entries()) {
+    const promise = task().then(result => {
+      completed++;
+      if (onProgress) {
+        onProgress({
+          completed,
+          total: tasks.length,
+          percent: Math.round((completed / tasks.length) * 100),
+          currentIndex: index,
+          result,
+        });
+      }
+      return result;
+    });
+
+    results.push(promise);
+    executing.push(promise);
+
+    if (executing.length >= concurrency) {
+      await Promise.race(executing);
+      executing.splice(executing.findIndex(p => p === promise), 1);
+    }
+  }
+
+  return Promise.all(results);
+};
+
+/**
+ * 批量上传文件（并发控制）
+ * @param {File[]} files - 文件数组
+ * @param {Function} onProgress - 进度回调
+ * @param {object} options - 配置选项
+ * @returns {Promise} 上传结果
+ */
+export const uploadFiles = async (files, onProgress, options = {}) => {
+  const {
+    concurrency = 5, // 默认并发数 5
+    retries = 3,     // 默认重试 3 次
+  } = options;
+
+  try {
+    // 创建上传任务数组
+    const tasks = files.map(file => () => uploadSingleFile(file, retries));
+
+    // 执行并发上传
+    const results = await runWithConcurrency(tasks, concurrency, onProgress);
+
+    const successResults = results.filter(r => r.success);
+    const failedResults = results.filter(r => !r.success);
+
     return {
       success: true,
-      data: response.data,
+      data: results,
+      summary: {
+        total: results.length,
+        success: successResults.length,
+        failed: failedResults.length,
+      },
     };
   } catch (error) {
     return {
       success: false,
-      error: error.response?.data?.error || '上传失败',
+      error: error.message || '批量上传失败',
+      data: [],
     };
   }
 };
 
 /**
- * 批量上传文件
- * @param {File[]} files - 文件数组
+ * 上传单个文件（对外接口）
+ * @param {File} file - 文件对象
  * @param {Function} onProgress - 进度回调
  * @returns {Promise} 上传结果
  */
-export const uploadFiles = async (files, onProgress) => {
-  try {
-    const formData = new FormData();
-    files.forEach((file) => {
-      formData.append('file', file);
-    });
-
-    const response = await upload('/upload', formData, onProgress);
-    return {
-      success: true,
-      data: response.data,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.error || '批量上传失败',
-    };
-  }
+export const uploadFile = async (file, onProgress) => {
+  const result = await uploadFiles([file], onProgress, { concurrency: 1 });
+  return result.data[0] || { success: false, error: '上传失败' };
 };
 
 /**
