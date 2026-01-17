@@ -16,7 +16,7 @@ export function createLoFiPreviewPage(baseUrl, id, rawUrl, downloadUrl) {
         }
 
         body {
-            font-family: 'Patrick Hand', 'Comic Sans MS', 'Chalkboard SE', 'Bradley Hand', cursive, sans-serif;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Bradley Hand', 'Marker Felt', 'Segoe Print', cursive, sans-serif;
             background: repeating-linear-gradient(
                 0deg,
                 #f5f5f5 0px,

@@ -7,8 +7,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        hand: ['"Patrick Hand"', '"Comic Sans MS"', '"Chalkboard SE"', '"Bradley Hand"', 'cursive', 'sans-serif'],
-        sans: ['"Patrick Hand"', '"Comic Sans MS"', '"Chalkboard SE"', '"Bradley Hand"', 'cursive', 'sans-serif'],
+        hand: ['"Comic Sans MS"', '"Chalkboard SE"', '"Bradley Hand"', '"Marker Felt"', '"Segoe Print"', 'cursive', 'sans-serif'],
+        sans: ['"Comic Sans MS"', '"Chalkboard SE"', '"Bradley Hand"', '"Marker Felt"', '"Segoe Print"', 'cursive', 'sans-serif'],
       },
       colors: {
         paper: '#ffffff',
