@@ -81,7 +81,7 @@ const useImageStore = create((set, get) => ({
       // 映射数据格式
       const mappedFiles = files.map((file) => ({
         ...file,
-        src: file.url || `/file/${file.id}`,
+        src: file.url ? `${file.url}?raw=true` : `/file/${file.id}?raw=true`,
       }));
 
       // 应用排序
