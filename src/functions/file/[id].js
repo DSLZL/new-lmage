@@ -54,14 +54,19 @@ export async function fileHandler(c) {
                     headers
                 });
             }
-            
+
             // 如果是原图请求（图片嵌入），返回原图
             if (isRaw) {
                 return await proxyFile(c, fileUrl);
             }
-            
+
             // 其他所有情况，都返回预览页面
-            return createPreviewPage(c, id, fileUrl);
+            const currentUrl = new URL(c.req.url);
+            const baseUrl = `${currentUrl.protocol}//${currentUrl.host}`;
+            const downloadUrl = `${baseUrl}/file/${id}?download=true`;
+            const rawUrl = `${baseUrl}/file/${id}?raw=true`;
+            const html = createLoFiPreviewPage(baseUrl, id, rawUrl, downloadUrl);
+            return c.html(html);
         }
 
         // 处理KV元数据
@@ -113,12 +118,9 @@ export async function fileHandler(c) {
 }
 
 /**
- * 创建图片预览页面
+ * 获取Telegram文件路径
  */
-function createPreviewPage(c, id, imageUrl) {
-    const currentUrl = new URL(c.req.url);
-    const baseUrl = `${currentUrl.protocol}//${currentUrl.host}`;
-    const downloadUrl = `${baseUrl}/file/${id}?download=true`;
+async function getFilePath(env, fileId) {
     try {
         const url = `https://api.telegram.org/bot${env.TG_Bot_Token}/getFile?file_id=${fileId}`;
         const res = await fetch(url, {
