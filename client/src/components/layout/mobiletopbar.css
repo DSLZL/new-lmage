@@ -1,0 +1,236 @@
+/* ============================================================
+   移动端顶部导航样式（亮暗双模自适应）
+   与 PC Header 同一视觉语言，仅尺寸适配触控
+   依赖 tokens：--glass-* / --nav-* / --accent* / --text-* / --border-*
+   ============================================================ */
+
+/* ---------- 移动端顶栏专用 token 附加块 ---------- */
+:root {
+  --mtb-height: 48px;
+  --mtb-shadow: 0 8px 32px rgba(15, 23, 42, 0.1);
+  --mtb-scrolled-bg: rgba(255, 255, 255, 0.82);
+  --mtb-menu-bg: rgba(255, 255, 255, 0.92);
+  --mtb-menu-border: rgba(255, 255, 255, 0.65);
+  --mtb-menu-shadow: 0 16px 48px rgba(15, 23, 42, 0.18), 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme='dark'] {
+    --mtb-shadow: 0 10px 36px rgba(0, 0, 0, 0.5);
+    --mtb-scrolled-bg: rgba(18, 18, 20, 0.85);
+    --mtb-menu-bg: rgba(20, 20, 24, 0.94);
+    --mtb-menu-border: rgba(255, 255, 255, 0.1);
+    --mtb-menu-shadow: 0 20px 56px rgba(0, 0, 0, 0.66), 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* ==================== 悬浮胶囊容器 ==================== */
+.mobile-topbar {
+  position: sticky;
+  top: 8px;
+  margin: 8px auto 0;
+  width: calc(100% - 20px);
+  max-width: 560px;
+  height: var(--mtb-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 14px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-premium);
+  box-shadow: var(--mtb-shadow);
+  z-index: 100;
+  transition: var(--transition-smooth);
+}
+
+/* 滚动加深态：毛玻璃更实、阴影更深 */
+.mobile-topbar.scrolled {
+  background: var(--mtb-scrolled-bg);
+  border-color: var(--border-subtle);
+  box-shadow: var(--mtb-shadow), 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* ==================== 品牌区 ==================== */
+.mtb-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mtb-logo-text {
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.06em;
+}
+
+/* ==================== 右侧快捷按钮区 ==================== */
+.mtb-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* 圆形搜索/主题按钮 */
+.mtb-icon-btn {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.mtb-icon-btn:active,
+.mtb-icon-btn:hover {
+  color: var(--accent);
+  background: var(--nav-pill-hover);
+  box-shadow: var(--accent-glow);
+}
+
+/* 主题切换图标旋转动效容器 */
+.theme-icon-wrap {
+  display: grid;
+  place-items: center;
+}
+
+/* 游客登录圆钮 */
+.mtb-login {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.mtb-login:active,
+.mtb-login:hover {
+  color: var(--accent);
+  background: var(--nav-pill-hover);
+  box-shadow: var(--accent-glow);
+}
+
+/* ==================== 账户区（头像 + 下拉菜单） ==================== */
+.mtb-user {
+  position: relative;
+  margin-left: 2px;
+}
+
+.mtb-avatar {
+  width: 34px;
+  height: 34px;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.mtb-avatar:active,
+.mtb-avatar:hover {
+  box-shadow: var(--accent-glow);
+  transform: scale(1.05);
+}
+
+/* 渐变描边头像环 */
+.mtb-avatar .avatar-ring {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.mtb-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--bg-surface);
+}
+
+.mtb-avatar .avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--bg-surface-hover);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+}
+
+/* 下拉菜单 */
+.mtb-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 196px;
+  padding: 8px;
+  background: var(--mtb-menu-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--mtb-menu-border);
+  border-radius: 14px;
+  box-shadow: var(--mtb-menu-shadow);
+  transform-origin: top right;
+  z-index: 120;
+}
+
+.mtb-menu-name {
+  padding: 8px 12px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 菜单项（自包含声明，不依赖 header.css） */
+.mtb-menu .dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.mtb-menu .dropdown-item:hover {
+  background: var(--nav-pill-hover);
+}
+
+.mtb-menu .dropdown-item.danger {
+  color: var(--error);
+}
+
+.mtb-menu .dropdown-item.danger:hover {
+  background: var(--danger-soft, rgba(239, 68, 68, 0.1));
+}
+
+.mtb-menu .dropdown-divider {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--divider-subtle);
+}
+
+/* ==================== 响应式显示 / 隐藏 ==================== */
+@media (min-width: 769px) {
+  .mobile-topbar {
+    display: none;
+  }
+}

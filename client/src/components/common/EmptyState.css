@@ -1,0 +1,67 @@
+/* EmptyState.css — 手绘插画空状态组件样式 */
+
+/* 空状态专用 Token */
+:root {
+  --empty-action-shadow: rgba(8, 145, 178, 0.32);
+}
+
+:root[data-theme='dark'] {
+    --empty-action-shadow: rgba(34, 211, 238, 0.4);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 64px 24px 56px;
+  gap: 6px;
+}
+
+.empty-state-art {
+  width: 220px;
+  height: 150px;
+  margin-bottom: 12px;
+}
+
+.empty-art-svg {
+  width: 100%;
+  height: 100%;
+  animation: empty-float 5s ease-in-out infinite;
+}
+
+@keyframes empty-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.empty-state-title {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.empty-state-desc {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.8;
+  max-width: 340px;
+}
+
+.empty-state-action {
+  margin-top: 22px;
+  height: 42px;
+  padding: 0 24px;
+  border-radius: var(--radius-round);
+  background: var(--accent-gradient);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px var(--empty-action-shadow);
+  /* transform 由 framer-motion 接管 */
+  transition: box-shadow var(--transition-fast);
+}

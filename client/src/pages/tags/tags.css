@@ -1,0 +1,204 @@
+/* tags.css — 标签页样式 */
+
+/* 标签页专用 Token */
+:root {
+  --tag-chip-bg: rgba(8, 145, 178, 0.12);
+  --tag-chip-border: rgba(8, 145, 178, 0.35);
+  --tag-chip-hover: 0 10px 26px rgba(0, 0, 0, 0.1);
+  --tag-chip-hover-shadow: rgba(8, 145, 178, 0.3);
+  --tag-swatch-ring: rgba(8, 145, 178, 0.25);
+  --tag-swatch-shadow: rgba(0, 0, 0, 0.18);
+  --tag-swatch-check: rgba(0, 0, 0, 0.55);
+}
+
+:root[data-theme='dark'] {
+    --tag-chip-bg: rgba(34, 211, 238, 0.18);
+    --tag-chip-border: rgba(34, 211, 238, 0.45);
+    --tag-chip-hover: 0 12px 30px rgba(0, 0, 0, 0.5);
+    --tag-chip-hover-shadow: rgba(34, 211, 238, 0.4);
+    --tag-swatch-ring: rgba(34, 211, 238, 0.35);
+    --tag-swatch-shadow: rgba(0, 0, 0, 0.5);
+    --tag-swatch-check: rgba(255, 255, 255, 0.85);
+}
+
+.tags-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+@media (max-width: 768px) {
+  .tags-container {
+    padding: 16px 12px;
+    gap: 20px;
+  }
+}
+
+/* 1. 页头 */
+.tags-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tags-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.tags-subtitle {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.tags-header-btn {
+  height: 44px;
+  padding: 0 20px;
+  border-radius: var(--radius-round);
+  background: var(--accent-gradient);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px var(--tag-chip-hover-shadow);
+  transition: box-shadow var(--transition-smooth);
+}
+
+.tags-header-btn:hover {
+  box-shadow: 0 12px 32px var(--tag-chip-hover-shadow);
+}
+
+/* 2. 标签云 */
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 10px 0;
+}
+
+.tag-chip {
+  --chip-bg: var(--tag-chip-bg);
+  --chip-color: var(--accent);
+  --chip-border: var(--tag-chip-border);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-round);
+  background: var(--chip-bg);
+  color: var(--chip-color);
+  border: 1px solid var(--chip-border);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--glass-shadow);
+  /* transform 由 framer-motion 接管 */
+  transition: box-shadow var(--transition-smooth), border-color var(--transition-smooth);
+}
+
+.tag-chip:hover {
+  box-shadow: var(--tag-chip-hover);
+}
+
+.tag-chip-gradient {
+  background: var(--accent-gradient);
+  color: #fff;
+  border-color: transparent;
+}
+
+.tag-chip-gradient .tag-chip-icon {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 3. 标签详情视图 */
+.tag-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.tag-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tag-chip-lg {
+  font-size: 16px;
+  padding: 12px 26px;
+}
+
+.tag-detail-count {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 4. 创建标签模态 */
+.tag-swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 6px 0 14px;
+}
+
+.tag-swatch {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* transform 由 framer-motion 接管 */
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: 0 3px 10px var(--tag-swatch-shadow);
+}
+
+.tag-swatch.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--tag-swatch-ring);
+}
+
+.tag-custom-color {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-surface);
+  margin-bottom: 4px;
+}
+
+.tag-custom-color .tag-custom-icon {
+  color: var(--text-muted);
+}
+
+.tag-color-input {
+  width: 40px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.tag-color-hex {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}

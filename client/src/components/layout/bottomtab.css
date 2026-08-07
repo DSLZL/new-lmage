@@ -1,0 +1,170 @@
+/* ============================================================
+   移动端底部 Tab 导航样式（亮暗双模自适应）
+   依赖 tokens：--glass-* / --nav-* / --accent* / --text-* / --border-* / --divider-subtle
+   ============================================================ */
+
+/* ---------- layout 专用 token 附加块（BottomTab 使用） ---------- */
+:root {
+  /* 底部悬浮胶囊高度 */
+  --bt-bar-height: 58px;
+  /* 悬浮胶囊阴影（四周柔光） */
+  --bt-bar-shadow: 0 12px 40px rgba(15, 23, 42, 0.16), 0 2px 10px rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme='dark'] {
+    --bt-bar-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* ==================== 悬浮胶囊容器 ==================== */
+.mobile-bottom-tab {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  width: calc(100% - 28px);
+  max-width: 480px;
+  height: var(--bt-bar-height);
+  display: flex;
+  align-items: center;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  box-shadow: var(--bt-bar-shadow);
+  z-index: 100;
+}
+
+/* ==================== 左右 tab 分组（对称均分） ==================== */
+.bt-group {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.bt-item {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  /* 图标中心与中央 FAB / 分隔线中心对齐（底栏中线）：
+     内容(24+2+10=36px)在可用高度(58-12=46px)内居中后，
+     图标中心恰好 = 12 + 5 + 12 = 29px = 栏中线 */
+  padding-top: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.bt-item:hover {
+  color: var(--text-dark);
+}
+
+/* 组内细分隔线 */
+.bt-item + .bt-item::before {
+  content: '';
+  width: 1px;
+  height: 16px;
+  background: var(--divider-subtle);
+  margin: 0 2px;
+}
+
+.bt-item-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 24px;
+  border-radius: var(--radius-round);
+}
+
+/* framer-motion layoutId 滑动胶囊（active 背景） */
+.bt-indicator {
+  position: absolute;
+  inset: 0;
+  background: var(--nav-indicator-bg);
+  border-radius: var(--radius-round);
+}
+
+.bt-item-icon {
+  position: relative;
+  z-index: 1;
+  transition: var(--transition-fast);
+}
+
+.bt-item-label {
+  position: relative;
+  z-index: 1;
+  font-size: 10px;
+  line-height: 1; /* 固定行高，保证图标中心对齐计算的确定性 */
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: var(--transition-fast);
+}
+
+.bt-item.active {
+  color: var(--accent);
+}
+
+.bt-item.active .bt-item-icon {
+  filter: drop-shadow(0 0 5px var(--accent-glow-strong));
+}
+
+/* ==================== 中央凸起上传 FAB（精致小巧，无光圈） ==================== */
+.bt-fab-zone {
+  width: 64px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bt-fab {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--fab-bg);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: var(--fab-shadow);
+  border: 2px solid var(--bg-surface);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.bt-fab:hover {
+  transform: scale(1.04);
+  box-shadow: var(--fab-shadow), 0 0 0 4px var(--nav-indicator-bg);
+}
+
+.bt-fab:active {
+  transform: scale(0.92);
+}
+
+/* ==================== 响应式显示 / 隐藏 ==================== */
+@media (min-width: 769px) {
+  .mobile-bottom-tab {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  /* 顶部导航悬浮胶囊留出呼吸空间 */
+  .app-main-content {
+    padding-top: 12px;
+  }
+  /* 为悬浮底栏预留内容底部空间 */
+  .app-main-content {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

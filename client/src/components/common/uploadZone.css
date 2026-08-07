@@ -1,0 +1,183 @@
+/* uploadZone.css — 极致化拖拽上传区（呼吸虚线 / 拖入发光 / 内联进度） */
+
+.upload-zone {
+  position: relative;
+  border-radius: var(--radius-premium);
+  background: var(--bg-surface);
+  padding: 44px 24px 40px;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: var(--glass-shadow);
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+/* 呼吸虚线边框（独立伪元素，避免动画压制 hover 态） */
+.upload-zone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1.5px dashed var(--border-subtle);
+  border-radius: inherit;
+  pointer-events: none;
+  animation: zone-breathe 3.6s ease-in-out infinite;
+  transition: border-color 0.3s ease, opacity 0.3s ease;
+}
+
+.upload-zone:hover {
+  background: var(--bg-surface-hover);
+}
+
+.upload-zone:hover::before {
+  border-color: var(--accent-light);
+}
+
+/* 拖入：缩放 + 发光 + 实线描边 */
+.upload-zone.drag-active {
+  transform: scale(1.012);
+  background: var(--bg-surface-hover);
+  box-shadow: 0 16px 48px var(--g-zone-glow-strong);
+}
+
+.upload-zone.drag-active::before {
+  border-color: var(--accent);
+  animation: none;
+  opacity: 1;
+}
+
+/* 上传中：锁定交互 */
+.upload-zone.uploading {
+  cursor: wait;
+}
+
+.upload-zone.uploading::before {
+  border-color: var(--accent);
+  animation: none;
+  opacity: 0.9;
+}
+
+@keyframes zone-breathe {
+  0%, 100% { border-color: var(--border-subtle); opacity: 0.75; }
+  50% { border-color: var(--border-active); opacity: 1; }
+}
+
+/* Header 联动高亮闪环 */
+.zone-flash-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid var(--accent);
+  box-shadow:
+    0 0 0 4px var(--g-flash-ring),
+    0 0 44px var(--accent-glow-strong);
+  pointer-events: none;
+  z-index: 3;
+  animation: zone-flash 1.7s ease-out forwards;
+}
+
+@keyframes zone-flash {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 图标（悬浮动画由 framer-motion 驱动外层，hover 放大在此） */
+.upload-icon-wrap {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--g-zone-glow);
+  transition: background-color 0.3s ease;
+}
+
+.upload-zone:hover .upload-icon-wrap,
+.upload-zone.drag-active .upload-icon-wrap {
+  background: var(--g-zone-glow-strong);
+}
+
+.upload-icon {
+  color: var(--accent);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.upload-zone:hover .upload-icon {
+  transform: scale(1.12);
+}
+
+.upload-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.upload-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.upload-chips {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.upload-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: var(--radius-round);
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-surface-hover);
+  border: 1px solid var(--border-subtle);
+}
+
+/* 上传中内联进度 */
+.upload-progress {
+  max-width: 420px;
+  margin: 18px auto 0;
+}
+
+.upload-progress-track {
+  height: 8px;
+  border-radius: var(--radius-round);
+  background: var(--bg-surface-hover);
+  overflow: hidden;
+}
+
+.upload-progress-bar {
+  height: 100%;
+  border-radius: var(--radius-round);
+  background: var(--accent-gradient);
+  box-shadow: 0 0 12px var(--g-zone-glow-strong);
+}
+
+.upload-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.upload-done-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--success);
+}

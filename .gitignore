@@ -3,7 +3,7 @@ node_modules/
 client/node_modules/
 /.pnp
 .pnp.js
-
+target
 # 测试
 /coverage
 

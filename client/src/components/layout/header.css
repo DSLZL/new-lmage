@@ -1,0 +1,401 @@
+/* ============================================================
+   PC 顶部导航 Header 样式（亮暗双模自适应）
+   依赖 tokens：--glass-* / --nav-* / --accent* / --text-* / --border-* / --divider-subtle
+   ============================================================ */
+
+/* ---------- layout 专用 token 附加块（Header 使用） ---------- */
+:root {
+  /* Header 滚动加深态：毛玻璃更实、描边更亮、阴影更深 */
+  --header-scrolled-bg: rgba(255, 255, 255, 0.86);
+  --header-scrolled-border: rgba(8, 145, 178, 0.18);
+  --header-scrolled-shadow: 0 12px 40px rgba(15, 23, 42, 0.1);
+  /* 渐变 CTA（上传 / 登录）光晕 */
+  --cta-glow: 0 4px 18px rgba(8, 145, 178, 0.3);
+  --cta-glow-strong: 0 6px 26px rgba(8, 145, 178, 0.45);
+  /* 用户下拉面板 */
+  --dropdown-bg: rgba(255, 255, 255, 0.88);
+  --dropdown-border: rgba(255, 255, 255, 0.6);
+  --dropdown-shadow: 0 16px 48px rgba(15, 23, 42, 0.14), 0 2px 8px rgba(15, 23, 42, 0.06);
+  /* 危险操作底色 */
+  --danger-soft: rgba(239, 68, 68, 0.1);
+}
+
+:root[data-theme='dark'] {
+    --header-scrolled-bg: rgba(13, 13, 16, 0.82);
+    --header-scrolled-border: rgba(34, 211, 238, 0.3);
+    --header-scrolled-shadow: 0 14px 44px rgba(0, 0, 0, 0.62);
+    --cta-glow: 0 4px 20px rgba(34, 211, 238, 0.38);
+    --cta-glow-strong: 0 8px 30px rgba(34, 211, 238, 0.55);
+    --dropdown-bg: rgba(20, 20, 24, 0.9);
+    --dropdown-border: rgba(255, 255, 255, 0.1);
+    --dropdown-shadow: 0 20px 56px rgba(0, 0, 0, 0.66), 0 2px 10px rgba(0, 0, 0, 0.3);
+    --danger-soft: rgba(248, 113, 113, 0.12);
+}
+
+/* ==================== 整体容器 ==================== */
+.pc-header {
+  position: sticky;
+  top: 16px;
+  z-index: 100;
+  margin: 16px auto 0;
+  width: calc(100% - 32px);
+  max-width: 1200px;
+  height: var(--nav-height);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-premium);
+  box-shadow: var(--glass-shadow);
+  transition: var(--transition-smooth);
+}
+
+/* 滚动加深态：毛玻璃更实、阴影更深、高度微压缩、轻微上贴 */
+.pc-header.scrolled {
+  top: 8px;
+  height: 56px;
+  background: var(--header-scrolled-bg);
+  border-color: var(--header-scrolled-border);
+  box-shadow: var(--header-scrolled-shadow);
+}
+
+/* ==================== 品牌区 ==================== */
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  transition: filter var(--transition-fast);
+}
+
+.logo-text {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition: var(--transition-fast);
+}
+
+/* 悬停微动效：品牌光晕加深（drop-shadow 不干扰渐变文字） */
+.header-logo:hover {
+  filter: drop-shadow(0 0 12px var(--accent-glow-strong));
+}
+
+/* ==================== 中央分组导航 ==================== */
+.header-nav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  white-space: nowrap;
+}
+
+.nav-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 组间细分隔线 */
+.nav-group + .nav-group::before {
+  content: '';
+  width: 1px;
+  height: 22px;
+  background: var(--divider-subtle);
+}
+
+/* 细分隔标签：小号字距拉开的组名 */
+.nav-group-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.nav-group-items {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 导航胶囊 pill */
+.nav-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: var(--radius-round);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.nav-pill:hover {
+  color: var(--text-main);
+  background: var(--nav-pill-hover);
+}
+
+.nav-pill-icon,
+.nav-pill-text {
+  position: relative;
+  z-index: 1;
+  transition: var(--transition-fast);
+}
+
+.nav-pill.active {
+  color: #fff;
+}
+
+.nav-pill.active .nav-pill-icon {
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.35));
+}
+
+/* framer-motion layoutId 滑动胶囊（渐变背景） */
+.nav-pill-active-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-round);
+  background: var(--nav-pill-active);
+  box-shadow: 0 4px 16px rgba(8, 145, 178, 0.3);
+}
+
+/* ==================== 右侧快捷操作区 ==================== */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* 圆形 icon 按钮通用工具提示（搜索/主题/登录共用） */
+.icon-btn::after,
+.login-cta::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--text-main);
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  border-radius: 8px;
+  box-shadow: var(--dropdown-shadow);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 120;
+  transition: var(--transition-fast);
+}
+
+.icon-btn:hover::after,
+.login-cta:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* 圆形搜索/主题按钮：hover 光晕 + 按压缩放（framer-motion whileTap）+ 工具提示 */
+.icon-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.icon-btn:hover {
+  color: var(--accent);
+  background: var(--nav-pill-hover);
+  box-shadow: var(--accent-glow);
+}
+
+/* 主题切换图标旋转动效容器 */
+.theme-icon-wrap {
+  display: grid;
+  place-items: center;
+}
+
+/* 游客登录圆钮（icon-only） */
+.login-cta {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.login-cta:hover {
+  color: var(--accent);
+  background: var(--nav-pill-hover);
+  box-shadow: var(--accent-glow);
+}
+
+/* ==================== 用户区下拉菜单 ==================== */
+.user-menu {
+  position: relative;
+}
+
+.user-trigger {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.user-trigger:hover,
+.user-trigger.open {
+  background: var(--nav-pill-hover);
+  box-shadow: var(--accent-glow);
+}
+
+/* 渐变描边头像环 */
+.avatar-ring {
+  width: 32px;
+  height: 32px;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.avatar-ring img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--bg-surface);
+}
+
+.avatar-ring .avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--bg-surface-hover);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+}
+
+/* 下拉面板 */
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 224px;
+  padding: 8px;
+  background: var(--dropdown-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--dropdown-border);
+  border-radius: 14px;
+  box-shadow: var(--dropdown-shadow);
+  transform-origin: top right;
+  z-index: 110;
+}
+
+.dropdown-header {
+  padding: 10px 12px 12px;
+  border-bottom: 1px solid var(--divider-subtle);
+  margin-bottom: 6px;
+}
+
+.dropdown-name {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-mail {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.dropdown-item:hover {
+  background: var(--nav-pill-hover);
+  color: var(--text-main);
+}
+
+.dropdown-item.danger {
+  color: var(--error);
+}
+
+.dropdown-item.danger:hover {
+  background: var(--danger-soft);
+}
+
+.dropdown-divider {
+  height: 1px;
+  margin: 6px 8px;
+  background: var(--divider-subtle);
+}
+
+/* ==================== 响应式微调 ==================== */
+@media (max-width: 1100px) {
+  .nav-group-label {
+    display: none;
+  }
+  .header-nav {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 880px) {
+  .nav-pill {
+    padding: 7px 11px;
+    gap: 6px;
+  }
+  .header-actions {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pc-header {
+    display: none;
+  }
+}

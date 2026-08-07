@@ -1,61 +1,30 @@
 {
-  "name": "tg-image-client",
-  "version": "2.0.0",
+  "name": "client",
+  "private": true,
+  "version": "0.0.0",
   "type": "module",
-  "description": "基于React的现代化图床服务 - 完全重构版",
-  "author": "",
-  "license": "AGPL-3.0-with-Commons-Clause",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "format": "prettier --write \"src/**/*.{js,jsx,css,json}\"",
-    "type-check": "tsc --noEmit"
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@phosphor-icons/react": "^2.1.10",
-    "axios": "^1.6.7",
-    "chart.js": "^4.4.1",
-    "clipboard": "^2.0.11",
-    "clsx": "^2.1.0",
-    "date-fns": "^3.3.1",
-    "framer-motion": "^11.0.5",
-    "react": "^18.3.1",
-    "react-chartjs-2": "^5.2.0",
-    "react-dom": "^18.3.1",
-    "react-dropzone": "^14.2.3",
-    "react-hot-toast": "^2.4.1",
-    "react-icons": "^5.0.1",
-    "react-query": "^3.39.3",
-    "react-router-dom": "^6.22.0",
-    "react-sortablejs": "^6.1.4",
-    "sortablejs": "^1.15.2",
-    "zustand": "^4.5.0"
+    "framer-motion": "^13.0.0",
+    "lucide-react": "^1.30.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-dropzone": "^20.0.0",
+    "react-router-dom": "^7.18.2",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
-    "@types/node": "^25.0.9",
-    "@types/react": "^18.3.1",
-    "@types/react-dom": "^18.3.0",
-    "@types/react-router-dom": "^5.3.3",
-    "@types/sortablejs": "^1.15.9",
-    "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.17",
-    "eslint": "^8.57.0",
-    "eslint-plugin-react": "^7.33.2",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",
-    "postcss": "^8.4.35",
-    "prettier": "^3.2.5",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5.9.3",
-    "vite": "^5.1.4"
-  },
-  "keywords": [
-    "图床",
-    "telegram",
-    "cloudflare",
-    "react",
-    "图片托管"
-  ]
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "oxlint": "^1.75.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0"
+  }
 }

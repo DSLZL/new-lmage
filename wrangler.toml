@@ -1,27 +1,20 @@
 name = "new-lmage"
 compatibility_date = "2023-01-01"
-main = "src/index.js"
+main = "build/index.js"
 
 [vars]
-# 可以在这里设置默认环境变量
-TG_Bot_Token = "8116484812:AAHIfsz9iFiMwWi2_BwQ1kuUrRWQgkCcdRw"
+# 生产环境环境变量
+TG_Bot_Token = "8859657937:AAGo-u8oMjjXV-257hvBAkLxXBPffbjNzec"
 TG_Chat_ID = "-1002509744447"
-JWT_SECRET = "your-jwt-secret-key-change-this-in-production"
+JWT_SECRET = "laowang-hardcore-jwt-secret-key-9527"
 
-# 注意：在部署前，请先创建这些 KV 命名空间，并将生成的 ID 填入下面的配置中
-# 使用以下命令创建 KV 命名空间（Wrangler 4.x 版本）：
-# npx wrangler kv namespace create "img_url"
-# npx wrangler kv namespace create "users"
-#
-# 或者使用 npm run create-kv 命令自动创建 KV 命名空间并更新配置
+[[d1_databases]]
+binding = "DB"
+database_name = "image"
+database_id = "484dd7ca-eb1f-41bf-b913-9b1edcc36da1"
 
-[[kv_namespaces]]
-binding = "img_url"
-id = "da52b8e6711b48a1ad6abf367e3ae44a"
-
-[[kv_namespaces]]
-binding = "users"
-id = "35d724932d7f40cba53e6b9c0e7221f2"
+[build]
+command = "npm --prefix client install && npm --prefix client run build && cargo install -q worker-build && worker-build --release"
 
 [site]
-bucket = "./public"
+bucket = "./client/dist"

@@ -1,0 +1,20 @@
+[package]
+name = "tg_image_rust"
+version = "3.0.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+worker = { version = "0.8.5", features = ["d1"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+hmac = "0.12"
+base64 = "0.22"
+uuid = { version = "1.8", features = ["v4", "js"] }
+
+# 本地网络受限，跳过从 GitHub 下载 wasm-opt 优化步骤，防止编译卡死/报错
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false

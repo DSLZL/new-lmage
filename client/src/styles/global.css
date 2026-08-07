@@ -1,0 +1,93 @@
+@import './variables.css';
+
+/* 1. 极致全局重置与宋体排版 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  /* 极致中文宋体堆栈，赋予绝佳人文质感 */
+  font-family: 'Noto Serif SC', 'SimSun', 'Songti SC', 'STSong', serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* 2. 极致白嫖：圆点网格噪点背景 (适配亮暗) */
+.app-bg-grid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2;
+  /* 默认为浅色的黑色圆点极细网格 */
+  background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+[data-theme='dark'] .app-bg-grid {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+
+/* 呼吸中心渐变灯光 (亮模式稍微柔和) */
+.app-bg-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background: radial-gradient(circle 800px at 50% -200px, rgba(8, 145, 178, 0.08), transparent 80%);
+  pointer-events: none;
+}
+
+[data-theme='dark'] .app-bg-glow {
+    background: radial-gradient(circle 800px at 50% -200px, rgba(34, 211, 238, 0.12), transparent 80%);
+}
+
+/* 3. 极细高级滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: var(--radius-round);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* 4. 辅助排版样式 */
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  background: none;
+  border: none;
+  outline: none;
+  color: inherit;
+}
+
+.premium-gradient-text {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
