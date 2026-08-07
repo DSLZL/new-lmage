@@ -14,7 +14,7 @@ database_name = "image"
 database_id = "484dd7ca-eb1f-41bf-b913-9b1edcc36da1"
 
 [build]
-command = "npm --prefix client install && npm --prefix client run build && cargo install -q worker-build && worker-build --release"
+command = "node build-platform.js"
 
 [site]
 bucket = "./client/dist"
