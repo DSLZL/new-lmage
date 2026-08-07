@@ -222,6 +222,12 @@ export const Gallery: React.FC = () => {
 
   const toggleSelect = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    // 游客：批量管理（打标/归档/删除）为登录权益，引导注册
+    if (!user) {
+      toast.info('登录后可批量管理图片（打标 / 归档 / 回收站）');
+      navigate('/login');
+      return;
+    }
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
@@ -284,17 +290,15 @@ export const Gallery: React.FC = () => {
 
   return (
     <div className="gallery-container">
-      {/* 上传区（仅对登录用户展示） */}
-      {user && (
-        <div className="g-upload-wrap">
-          <UploadZone
-            onFiles={handleFiles}
-            uploading={uploading}
-            progress={progress}
-            zoneRef={zoneRef}
-          />
-        </div>
-      )}
+      {/* 上传区（游客可用：每 5 分钟限 5 张；登录后无限速） */}
+      <div className="g-upload-wrap">
+        <UploadZone
+          onFiles={handleFiles}
+          uploading={uploading}
+          progress={progress}
+          zoneRef={zoneRef}
+        />
+      </div>
 
       {/* 筛选 chips：全部 / 最近上传 / 浏览最多 */}
       <GalleryFilterBar value={filter} onChange={setFilter} />
@@ -382,14 +386,14 @@ export const Gallery: React.FC = () => {
         <GallerySkeleton count={12} />
       ) : images.length === 0 ? (
         <GalleryEmpty
-          title={activeQuery ? '没有找到匹配的图片' : (user ? '图库空空如也' : '期待第一幅作品的诞生')}
+          title={activeQuery ? '没有找到匹配的图片' : '图库空空如也'}
           description={
             activeQuery
               ? '换个关键词试试，或清除搜索浏览全部图片。'
-              : (user ? '把图片拖进上方上传区，瞬间完成中转归档。' : '这座艺术馆还在等待它的第一批展品。')
+              : '把图片拖进上方上传区，瞬间完成中转归档。'
           }
-          actionText={activeQuery ? '清除搜索' : (user ? '去上传第一张图' : '登录开启你的创作')}
-          onAction={activeQuery ? () => setQuery('') : (user ? scrollToUpload : () => navigate('/login'))}
+          actionText={activeQuery ? '清除搜索' : '去上传第一张图'}
+          onAction={activeQuery ? () => setQuery('') : scrollToUpload}
         />
       ) : (
         <div className="masonry-grid">

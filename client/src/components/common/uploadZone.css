@@ -144,6 +144,29 @@
   border: 1px solid var(--border-subtle);
 }
 
+/* 游客「登录解锁」入口 chip（琥珀警示系） */
+.upload-guest-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: var(--radius-round);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--warning);
+  background: var(--warning-soft);
+  border: 1px solid var(--warning-border);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.upload-guest-chip:hover {
+  color: #fff;
+  background: var(--warning);
+  border-color: var(--warning);
+}
+
 /* 限速横幅（秒级倒计时 + 拦截抖动） */
 .upload-limit-wrap {
   margin-top: 12px;

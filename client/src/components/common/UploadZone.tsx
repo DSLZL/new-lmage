@@ -1,11 +1,13 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   CheckCircle2,
   Film,
   Image,
   Loader2,
+  LogIn,
   Music,
   ShieldAlert,
   UploadCloud,
@@ -85,6 +87,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
 }) => {
   const { user } = useAuth();
   const isGuest = !user;
+  const navigate = useNavigate();
 
   // 限速态：until 为分钟窗口到期时间戳，message 为后端原文案
   const [rateLimit, setRateLimit] = useState<{ message: string; until: number } | null>(null);
@@ -216,7 +219,9 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
       <p className="upload-desc">
         {uploading && progress
           ? `正在上传：${progress.currentName}`
-          : '支持原图 / 视频 / 音频，单文件上限 20MB，可多选批量上传'}
+          : isGuest
+            ? '游客模式：每 5 分钟限 5 张，单文件上限 20MB'
+            : '支持原图 / 视频 / 音频，单文件上限 20MB，可多选批量上传'}
       </p>
 
       {rateLimited && (
@@ -251,6 +256,17 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
             <Music size={12} strokeWidth={1.5} />
             音频
           </span>
+          {isGuest && (
+            <motion.button
+              type="button"
+              className="upload-guest-chip"
+              whileTap={{ scale: 0.94 }}
+              onClick={() => navigate('/login')}
+            >
+              <LogIn size={12} strokeWidth={1.8} />
+              登录解锁无限上传
+            </motion.button>
+          )}
         </div>
       )}
 

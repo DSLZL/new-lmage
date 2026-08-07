@@ -2,14 +2,11 @@ use crate::core::{cors, crypto};
 use crate::domain::image::{self, Image};
 use worker::*;
 
-// 1. 获取图片分页列表
+// 1. 获取图片分页列表（可选鉴权：登录用户看自己的；游客看全站公开画廊）
 pub async fn get_user_images(req: Request, env: Env) -> Result<Response> {
     let db = env.d1("DB")?;
     let jwt_secret = env.var("JWT_SECRET")?.to_string();
-    let claims = match crypto::authenticate(&req, &jwt_secret) {
-        Ok(c) => c,
-        Err(err) => return Response::error(err.to_string(), 401),
-    };
+    let claims = crypto::authenticate(&req, &jwt_secret).ok();
 
     let url = req.url()?;
     let query = url.query_pairs();
@@ -26,22 +23,45 @@ pub async fn get_user_images(req: Request, env: Env) -> Result<Response> {
 
     let offset = (page - 1) * limit;
 
-    let images = db.prepare(
-        "SELECT * FROM images WHERE user_id = ? AND is_trash = 0 ORDER BY uploaded_at DESC LIMIT ? OFFSET ?"
-    )
-    .bind(&[claims.sub.clone().into(), limit.into(), offset.into()])?
-    .all()
-    .await?
-    .results::<Image>()?;
-
-    let count_res = db.prepare("SELECT COUNT(*) as count FROM images WHERE user_id = ? AND is_trash = 0")
-        .bind(&[claims.sub.into()])?
-        .first::<serde_json::Value>(None)
-        .await?;
-
-    let total = match count_res {
-        Some(val) => val.get("count").and_then(|v| v.as_i64()).unwrap_or(0),
-        None => 0,
+    // 登录用户：本人图片；游客：全站公开图片（封禁/回收站除外）
+    let (images, total) = match &claims {
+        Some(c) => {
+            let images = db
+                .prepare(
+                    "SELECT * FROM images WHERE user_id = ? AND is_trash = 0 ORDER BY uploaded_at DESC LIMIT ? OFFSET ?"
+                )
+                .bind(&[c.sub.clone().into(), limit.into(), offset.into()])?
+                .all()
+                .await?
+                .results::<Image>()?;
+            let count_res = db
+                .prepare("SELECT COUNT(*) as count FROM images WHERE user_id = ? AND is_trash = 0")
+                .bind(&[c.sub.clone().into()])?
+                .first::<serde_json::Value>(None)
+                .await?;
+            let total = count_res
+                .and_then(|val| val.get("count").and_then(|v| v.as_i64()))
+                .unwrap_or(0);
+            (images, total)
+        }
+        None => {
+            let images = db
+                .prepare(
+                    "SELECT * FROM images WHERE is_trash = 0 AND is_blocked = 0 ORDER BY uploaded_at DESC LIMIT ? OFFSET ?"
+                )
+                .bind(&[limit.into(), offset.into()])?
+                .all()
+                .await?
+                .results::<Image>()?;
+            let count_res = db
+                .prepare("SELECT COUNT(*) as count FROM images WHERE is_trash = 0 AND is_blocked = 0")
+                .first::<serde_json::Value>(None)
+                .await?;
+            let total = count_res
+                .and_then(|val| val.get("count").and_then(|v| v.as_i64()))
+                .unwrap_or(0);
+            (images, total)
+        }
     };
 
     let headers = cors::apply_cors(Headers::new())?;
@@ -83,14 +103,11 @@ pub async fn get_image_detail(req: Request, env: Env, imageid: String) -> Result
     Ok(response)
 }
 
-// 3. 搜索当前用户的图片
+// 3. 搜索图片（可选鉴权：登录用户搜自己的；游客搜全站公开画廊）
 pub async fn search_user_images(req: Request, env: Env) -> Result<Response> {
     let db = env.d1("DB")?;
     let jwt_secret = env.var("JWT_SECRET")?.to_string();
-    let claims = match crypto::authenticate(&req, &jwt_secret) {
-        Ok(c) => c,
-        Err(err) => return Response::error(err.to_string(), 401),
-    };
+    let claims = crypto::authenticate(&req, &jwt_secret).ok();
 
     let url = req.url()?;
     let query = url.query_pairs();
@@ -104,13 +121,24 @@ pub async fn search_user_images(req: Request, env: Env) -> Result<Response> {
 
     let like_query = format!("%{}%", keyword);
 
-    let images = db.prepare(
-        "SELECT * FROM images WHERE user_id = ? AND is_trash = 0 AND file_name LIKE ? ORDER BY uploaded_at DESC"
-    )
-    .bind(&[claims.sub.into(), like_query.into()])?
-    .all()
-    .await?
-    .results::<Image>()?;
+    let images = match &claims {
+        Some(c) => db
+            .prepare(
+                "SELECT * FROM images WHERE user_id = ? AND is_trash = 0 AND file_name LIKE ? ORDER BY uploaded_at DESC"
+            )
+            .bind(&[c.sub.clone().into(), like_query.into()])?
+            .all()
+            .await?
+            .results::<Image>()?,
+        None => db
+            .prepare(
+                "SELECT * FROM images WHERE is_trash = 0 AND is_blocked = 0 AND file_name LIKE ? ORDER BY uploaded_at DESC"
+            )
+            .bind(&[like_query.into()])?
+            .all()
+            .await?
+            .results::<Image>()?,
+    };
 
     let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
