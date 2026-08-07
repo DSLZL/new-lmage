@@ -3,17 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import {
-  CalendarDays, FolderHeart, HardDrive, Image, KeyRound, Library, Link2,
-  LoaderCircle, LogIn, LogOut, Mail, PencilLine, Quote, Tags, User as UserIcon, Zap,
+  CalendarDays, FolderHeart, HardDrive, Image, KeyRound, Link2,
+  LoaderCircle, LogOut, Mail, PencilLine, Quote, Tags, User as UserIcon,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 import type { QuotaStats, User } from '../../services/api';
 import { GlassCard } from '../../components/common/GlassCard';
-import { BrandLogo } from '../../components/common/BrandLogo';
 import { CountUp } from '../../components/common/CountUp';
 import { formatBytes, formatNumber } from '../../components/common/format';
+import { GuestProfile } from './GuestProfile';
 import './profile.css';
 
 /** 个人中心用户：扩展注册时间字段（后端暂未下发，预留展示） */
@@ -206,33 +206,11 @@ export const Profile: React.FC = () => {
 
   const puser = user as ProfileUser | null;
 
-  /* ---------- 游客态：登录引导 ---------- */
+  /* ---------- 游客态：品牌引导页（手绘 SVG 插画 + 权益 + 权限对比） ---------- */
   if (!puser) {
     return (
       <div className="profile-container">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <GlassCard className="profile-guest-card">
-            <div className="profile-guest-brand">
-              <BrandLogo size={48} glow />
-            </div>
-            <h2 className="profile-guest-title">欢迎探索 LMage</h2>
-            <p className="profile-guest-desc">加入我们，解锁极致体验的图床管理与画廊探索功能，享受无限速归档与多端同步。</p>
-            
-            <div className="profile-guest-features">
-              <div className="pg-feature"><Image size={14} /> <span>无损瀑布流画廊</span></div>
-              <div className="pg-feature"><Library size={14} /> <span>多相册精细管理</span></div>
-              <div className="pg-feature"><Tags size={14} /> <span>智能标签聚类</span></div>
-              <div className="pg-feature"><Zap size={14} /> <span>闪电级全球分发</span></div>
-            </div>
-
-            <div className="profile-guest-actions">
-              <button className="profile-login-btn" onClick={() => navigate('/login')}>
-                <LogIn size={14} strokeWidth={2} />
-                <span>立即加入</span>
-              </button>
-            </div>
-          </GlassCard>
-        </motion.div>
+        <GuestProfile onLogin={() => navigate('/login')} />
       </div>
     );
   }
