@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Check,
   Eye,
+  FolderPlus,
   ImagePlus,
   Loader2,
   RefreshCw,
   Search,
+  Tag as TagIcon,
   Trash2,
   X,
 } from 'lucide-react';
@@ -14,7 +16,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
-import type { Image } from '../../services/api';
+import type { Image, Tag } from '../../services/api';
 import { SEARCH_EVENT } from '../../config/navigation';
 import { UploadZone } from '../../components/common/UploadZone';
 import type { UploadProgress } from '../../components/common/UploadZone';
@@ -24,6 +26,8 @@ import { GallerySkeleton } from '../../components/common/GallerySkeleton';
 import { GalleryEmpty } from '../../components/common/GalleryEmpty';
 import { ImageLightbox } from '../../components/common/ImageLightbox';
 import { ConfirmSheet } from '../../components/common/ConfirmSheet';
+import { TagSelectModal } from '../../components/common/TagSelectModal';
+import { AlbumSelectModal } from '../../components/common/AlbumSelectModal';
 import { formatBytes, formatNumber } from '../../components/common/format';
 import './gallery.css';
 import '../../components/common/galleryList.css';
@@ -62,6 +66,20 @@ export const Gallery: React.FC = () => {
   const [lightboxImage, setLightboxImage] = useState<Image | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState>(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
+
+  // 批量联动：打标 / 归档相册（全标签列表供打标面板使用）
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [batchTagOpen, setBatchTagOpen] = useState(false);
+  const [batchTagging, setBatchTagging] = useState(false);
+  const [albumPickerOpen, setAlbumPickerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    api
+      .getTags()
+      .then((res) => setAllTags(res.tags))
+      .catch(() => undefined);
+  }, [user]);
 
   // 联动引用
   const zoneRef = useRef<HTMLDivElement>(null);
@@ -245,6 +263,23 @@ export const Gallery: React.FC = () => {
 
   const closeLightbox = useCallback(() => setLightboxImage(null), []);
 
+  /* ---------- 批量联动：打标 / 归档 ---------- */
+
+  const handleBatchTag = async (tagIds: string[]) => {
+    if (tagIds.length === 0 || selectedIds.length === 0) return;
+    setBatchTagging(true);
+    try {
+      await api.batchTagImages(selectedIds, tagIds, 'add');
+      toast.success(`已为 ${selectedIds.length} 张图片打上 ${tagIds.length} 个标签`);
+      setBatchTagOpen(false);
+      clearSelection();
+    } catch (err: any) {
+      toast.error(err?.message ?? '批量打标失败');
+    } finally {
+      setBatchTagging(false);
+    }
+  };
+
   /* ---------- 渲染 ---------- */
 
   return (
@@ -294,12 +329,28 @@ export const Gallery: React.FC = () => {
               >
                 <span className="select-count">已选 {selectedIds.length} 项</span>
                 <motion.button
+                  className="action-btn"
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setBatchTagOpen(true)}
+                >
+                  <TagIcon size={15} strokeWidth={1.5} />
+                  打标
+                </motion.button>
+                <motion.button
+                  className="action-btn"
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setAlbumPickerOpen(true)}
+                >
+                  <FolderPlus size={15} strokeWidth={1.5} />
+                  相册
+                </motion.button>
+                <motion.button
                   className="action-btn danger-btn"
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setConfirmState({ kind: 'batch', ids: selectedIds })}
                 >
                   <Trash2 size={15} strokeWidth={1.5} />
-                  移入回收站
+                  回收站
                 </motion.button>
                 <button className="action-btn" onClick={clearSelection}>
                   <X size={15} strokeWidth={1.5} />
@@ -402,11 +453,12 @@ export const Gallery: React.FC = () => {
         </div>
       )}
 
-      {/* 详情光箱 */}
+      {/* 详情光箱（联动：归档 / 标签变化后刷新列表） */}
       <ImageLightbox
         image={lightboxImage}
         onClose={closeLightbox}
         onRequestDelete={(img) => setConfirmState({ kind: 'single', image: img })}
+        onChanged={refresh}
       />
 
       {/* 删除确认弹层（移动端底部弹层，桌面自动居中） */}
@@ -427,6 +479,27 @@ export const Gallery: React.FC = () => {
         loading={confirmBusy}
         onConfirm={confirmState?.kind === 'batch' ? handleBatchDelete : handlePhysicalDelete}
         onClose={() => setConfirmState(null)}
+      />
+
+      {/* 批量打标签面板 */}
+      <TagSelectModal
+        open={batchTagOpen}
+        mode="add"
+        title="批量打标签"
+        subtitle={`为已选 ${selectedIds.length} 张图片打上标签`}
+        tags={allTags}
+        confirmText="确认打标"
+        submitting={batchTagging}
+        onClose={() => setBatchTagOpen(false)}
+        onConfirm={handleBatchTag}
+      />
+
+      {/* 批量归档相册选择器（内嵌新建相册联动） */}
+      <AlbumSelectModal
+        open={albumPickerOpen}
+        imageIds={selectedIds}
+        onClose={() => setAlbumPickerOpen(false)}
+        onChanged={refresh}
       />
     </div>
   );

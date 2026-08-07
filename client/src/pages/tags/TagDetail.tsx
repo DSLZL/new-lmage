@@ -277,11 +277,12 @@ export const TagDetail: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* 高级光箱（弹簧入场 / Esc 关闭 / 四格式外链复制） */}
+      {/* 高级光箱（弹簧入场 / Esc 关闭 / 四格式外链复制 / 归档与标签联动） */}
       <ImageLightbox
         image={lightbox}
         onClose={() => setLightbox(null)}
         onRequestDelete={(img) => setDeleteTarget(img)}
+        onChanged={load}
       />
 
       {/* 批量打标 / 解绑面板 */}

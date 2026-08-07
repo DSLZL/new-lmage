@@ -7,8 +7,8 @@ import './modals.css';
 interface CreateAlbumModalProps {
   open: boolean;
   onClose: () => void;
-  /** 创建成功并刷新列表后的回调 */
-  onCreated: () => void;
+  /** 创建成功回调（携带新相册 id，供调用方联动自动归档等） */
+  onCreated: (albumid: string) => void;
 }
 
 /** 创建相册弹层：名称 + 描述 + 可选提取码（移动端底部弹层，桌面自动居中） */
@@ -26,7 +26,7 @@ export const CreateAlbumModal: React.FC<CreateAlbumModalProps> = ({ open, onClos
     }
     setCreating(true);
     try {
-      await api.createAlbum({
+      const res = await api.createAlbum({
         name: formName.trim(),
         description: formDesc.trim() ? formDesc.trim() : undefined,
         password: formPwd.trim() ? formPwd : undefined,
@@ -36,7 +36,7 @@ export const CreateAlbumModal: React.FC<CreateAlbumModalProps> = ({ open, onClos
       setFormName('');
       setFormDesc('');
       setFormPwd('');
-      onCreated();
+      onCreated(res.albumid);
     } catch (err: any) {
       toast.error(err.message || '创建相册失败');
     } finally {

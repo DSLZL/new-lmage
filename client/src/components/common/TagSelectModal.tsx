@@ -14,6 +14,8 @@ interface TagSelectModalProps {
   /** 默认勾选的标签 id（解绑模式下通常为当前查看的标签） */
   defaultCheckedIds?: string[];
   confirmText?: string;
+  /** 提交进行中：禁用确认按钮并显示 loading */
+  submitting?: boolean;
   onClose: () => void;
   onConfirm: (tagIds: string[]) => void;
 }
@@ -27,6 +29,7 @@ export const TagSelectModal: React.FC<TagSelectModalProps> = ({
   tags,
   defaultCheckedIds = [],
   confirmText,
+  submitting = false,
   onClose,
   onConfirm,
 }) => {
@@ -73,12 +76,13 @@ export const TagSelectModal: React.FC<TagSelectModalProps> = ({
         </button>
         <button
           className={`modal-btn ${mode === 'remove' ? 'modal-btn-danger' : 'modal-btn-primary'}`}
-          disabled={checked.length === 0}
+          disabled={checked.length === 0 || submitting}
           onClick={() => {
             onConfirm(checked);
             setChecked([]);
           }}
         >
+          {submitting && <span className="modal-spinner" />}
           {confirmText || (mode === 'remove' ? '确认解绑' : '确认打标')}（{checked.length}）
         </button>
       </div>

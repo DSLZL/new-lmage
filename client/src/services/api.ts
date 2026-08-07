@@ -171,6 +171,13 @@ export const api = {
       headers: getHeaders(),
     }),
 
+  /** 单张图片的全部标签（光箱联动：展示与同步编辑） */
+  getImageTags: (imageid: string) =>
+    request<{ tags: Tag[] }>(`/api/images/${imageid}/tags`, {
+      method: 'GET',
+      headers: getHeaders(),
+    }),
+
   deleteImagePhysically: (imageid: string) =>
     request<{ success: boolean; message: string }>(`/api/images/${imageid}`, {
       method: 'DELETE',

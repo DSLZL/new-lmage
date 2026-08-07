@@ -392,11 +392,12 @@ export const AlbumDetail: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* ===== 详情光箱（复用图库级组件） ===== */}
+      {/* ===== 详情光箱（复用图库级组件，归档/标签联动刷新） ===== */}
       <ImageLightbox
         image={lightbox}
         onClose={() => setLightbox(null)}
         onRequestDelete={(img) => setConfirm({ kind: 'image', image: img })}
+        onChanged={() => load(accessPwd || undefined)}
       />
 
       {/* ===== 删除确认弹层（移动端底部弹层，桌面自动居中） ===== */}
