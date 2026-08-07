@@ -7,6 +7,9 @@ main = "build/index.js"
 TG_Bot_Token = "8859657937:AAGo-u8oMjjXV-257hvBAkLxXBPffbjNzec"
 TG_Chat_ID = "-1002509744447"
 JWT_SECRET = "laowang-hardcore-jwt-secret-key-9527"
+# 图片状态管理开关（默认关闭 = 纯图床模式：上传后永久托管，访问路径零状态校验）
+# 设为 "on" 时启用封禁/回收站拦截与点击统计（每次访问需查 D1 状态）
+FILE_STATUS_CHECK = "off"
 
 [[d1_databases]]
 binding = "DB"

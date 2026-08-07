@@ -2,18 +2,24 @@ use crate::core::{cors, crypto, tg};
 use crate::domain::image;
 use worker::*;
 
-// 1. 流式图片代理网关（打通 Cloudflare Cache API 全球边缘节点物理缓存，点击量统计，多尺寸缩略图）
+// 1. 流式图片代理网关（打通 Cloudflare Cache API 全球边缘节点物理缓存，多尺寸缩略图）
 pub async fn proxy_file(req: Request, env: Env, filekey: String) -> Result<Response> {
     let db = env.d1("DB")?;
     let bot_token = env.var("TG_Bot_Token")?.to_string();
 
-    // ⚡ 状态校验必须先于缓存检查：封禁/回收站必须立即生效，
-    // 否则被边缘缓存兜住的图片可绕过拦截继续读取
+    // ⚡ 状态管理开关（默认关闭 = 纯图床模式）：
+    // - off：上传后完全不管，图片访问路径零状态校验、零点击统计写入，
+    //   仅按需读取缩略图元数据（30s 内存缓存 + 365 天边缘缓存吸收，实际趋近零查询）
+    // - on：执行封禁/回收站校验（校验必须先于缓存检查，防绕过）与点击统计
+    let status_check_on = env
+        .var("FILE_STATUS_CHECK")
+        .map(|v| v.to_string().eq_ignore_ascii_case("on"))
+        .unwrap_or(false);
+
     let raw_file_id = filekey.split('.').next().unwrap_or(&filekey).to_string();
     let mut target_file_id = raw_file_id.clone();
 
-    // 状态/元数据优先走 30s 内存缓存（热图访问零 D1 查询），
-    // 未命中才查库并回填；删除/回收站等写操作已主动失效保证即时生效
+    // 缩略图元数据：内存缓存优先（30s），未命中查 D1 回填
     let img_opt = match crate::core::img_cache::get(&filekey) {
         Some(img) => Some(img),
         None => {
@@ -25,19 +31,24 @@ pub async fn proxy_file(req: Request, env: Env, filekey: String) -> Result<Respo
         }
     };
 
-    if let Some(ref img) = img_opt {
-        if img.is_blocked == 1 {
-            let headers = cors::apply_cors(Headers::new())?;
-            headers.set("Content-Type", "application/json")?;
-            return Ok(Response::error("图片已被封禁", 403)?.with_headers(headers));
+    if status_check_on {
+        // 状态校验模式：封禁/回收站必须立即生效
+        if let Some(ref img) = img_opt {
+            if img.is_blocked == 1 {
+                let headers = cors::apply_cors(Headers::new())?;
+                headers.set("Content-Type", "application/json")?;
+                return Ok(Response::error("图片已被封禁", 403)?.with_headers(headers));
+            }
+            if img.is_trash == 1 {
+                let headers = cors::apply_cors(Headers::new())?;
+                headers.set("Content-Type", "application/json")?;
+                return Ok(Response::error("图片已被移入回收站", 404)?.with_headers(headers));
+            }
         }
-        if img.is_trash == 1 {
-            let headers = cors::apply_cors(Headers::new())?;
-            headers.set("Content-Type", "application/json")?;
-            return Ok(Response::error("图片已被移入回收站", 404)?.with_headers(headers));
-        }
+    }
 
-        // size=thumb 缩略图快速白嫖
+    // size=thumb 缩略图快速白嫖（两种模式均支持：复用 TG 自动缩略图省流量）
+    if let Some(ref img) = img_opt {
         let url = req.url()?;
         let query = url.query_pairs();
         let mut request_thumb = false;
@@ -92,8 +103,8 @@ pub async fn proxy_file(req: Request, env: Env, filekey: String) -> Result<Respo
     };
     res_headers.set("Content-Type", mime_type)?;
 
-    // 4) 物理流写入成功后，累计 Views (D1 写入)
-    if img_opt.is_some() {
+    // 4) 物理流写入成功后，累计 Views (仅状态管理开启时统计，纯图床模式零写入)
+    if status_check_on && img_opt.is_some() {
         let now = Date::now().as_millis() as i64;
         let _ = image::increment_views(&db, &raw_file_id, now).await;
     }

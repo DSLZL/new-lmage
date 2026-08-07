@@ -31,7 +31,7 @@
 - **流式代理网关**：`GET /file/:filekey` 实时换取 Telegram 物理路径并流式回源
 - **Cloudflare 边缘缓存**：命中 `Cache API` 物理缓存直接秒开；未命中时后台异步写入缓存，不阻塞响应；强缓存头 `Cache-Control: public, s-maxage=31536000, max-age=31536000, immutable`
 - **缩略图**：`?size=thumb` 直接复用 Telegram 自动生成的缩略图，大幅节省流量
-- **封禁/回收站边缘拦截**：图片被管理员封禁（403）或移入回收站（404）时，在 D1 状态层直接拦截
+- **状态管理开关（默认关闭）**：纯图床模式下访问路径零 D1 查询；设置 `FILE_STATUS_CHECK=on` 可启用封禁（403）/回收站（404）边缘拦截与点击统计
 - **点击统计**：每次成功回源自动累计 `views` 并刷新 `last_accessed_at`
 
 ### 图库与资产管理
@@ -274,6 +274,7 @@ npx wrangler deploy
 | `TG_Bot_Token` | 是 | Telegram Bot Token（BotFather 创建），Worker 调用 Bot API 的凭证 |
 | `TG_Chat_ID` | 是 | 目标频道/群组的 Chat ID，所有图片经 `sendDocument` 存入此处 |
 | `JWT_SECRET` | 是 | JWT（HS256）签名密钥，泄露会导致 Token 可伪造，请使用高强度随机值 |
+| `FILE_STATUS_CHECK` | 否 | 状态管理开关：默认关闭（纯图床模式，访问路径零 D1）；设为 `on` 启用封禁/回收站拦截与点击统计 |
 
 ### D1 数据库绑定（wrangler.toml）
 
