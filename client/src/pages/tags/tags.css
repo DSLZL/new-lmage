@@ -1,61 +1,35 @@
-/* tags.css — 标签页样式 */
+/* tags.css — 标签列表页样式（亮暗自适应，token 全部跟随全局主题） */
 
-/* 标签页专用 Token */
-:root {
-  --tag-chip-bg: rgba(8, 145, 178, 0.12);
-  --tag-chip-border: rgba(8, 145, 178, 0.35);
-  --tag-chip-hover: 0 10px 26px rgba(0, 0, 0, 0.1);
-  --tag-chip-hover-shadow: rgba(8, 145, 178, 0.3);
-  --tag-swatch-ring: rgba(8, 145, 178, 0.25);
-  --tag-swatch-shadow: rgba(0, 0, 0, 0.18);
-  --tag-swatch-check: rgba(0, 0, 0, 0.55);
-}
-
-:root[data-theme='dark'] {
-    --tag-chip-bg: rgba(34, 211, 238, 0.18);
-    --tag-chip-border: rgba(34, 211, 238, 0.45);
-    --tag-chip-hover: 0 12px 30px rgba(0, 0, 0, 0.5);
-    --tag-chip-hover-shadow: rgba(34, 211, 238, 0.4);
-    --tag-swatch-ring: rgba(34, 211, 238, 0.35);
-    --tag-swatch-shadow: rgba(0, 0, 0, 0.5);
-    --tag-swatch-check: rgba(255, 255, 255, 0.85);
-}
-
+/* 1. 容器（内嵌于管理中心：两侧留白由 manage-shell 提供） */
 .tags-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: 8px 0 24px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
 }
 
 @media (max-width: 768px) {
   .tags-container {
-    padding: 16px 12px;
-    gap: 20px;
+    padding: 4px 0 16px;
+    gap: 12px;
   }
 }
 
-/* 1. 页头 */
-.tags-header {
+/* 2. 操作栏（保留新建标签核心操作，标题交给二级导航） */
+.tags-toolbar {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 12px;
+  min-height: 44px;
 }
 
-.tags-title {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
-.tags-subtitle {
-  font-size: 13.5px;
+.tags-count {
+  font-size: 13px;
   color: var(--text-muted);
-  margin-top: 6px;
+  letter-spacing: 0.04em;
 }
 
 .tags-header-btn {
@@ -70,15 +44,17 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 8px 24px var(--tag-chip-hover-shadow);
-  transition: box-shadow var(--transition-smooth);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  /* transform 由 framer-motion 接管 */
+  transition: box-shadow var(--transition-smooth), filter var(--transition-fast);
 }
 
 .tags-header-btn:hover {
-  box-shadow: 0 12px 32px var(--tag-chip-hover-shadow);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+  filter: brightness(1.08);
 }
 
-/* 2. 标签云 */
+/* 3. 标签云 */
 .tag-cloud {
   display: flex;
   flex-wrap: wrap;
@@ -87,9 +63,11 @@
 }
 
 .tag-chip {
-  --chip-bg: var(--tag-chip-bg);
+  --chip-bg: rgba(8, 145, 178, 0.12);
+  --chip-bg: color-mix(in srgb, var(--accent) 12%, transparent);
   --chip-color: var(--accent);
-  --chip-border: var(--tag-chip-border);
+  --chip-border: rgba(8, 145, 178, 0.35);
+  --chip-border: color-mix(in srgb, var(--accent) 35%, transparent);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -107,7 +85,7 @@
 }
 
 .tag-chip:hover {
-  box-shadow: var(--tag-chip-hover);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
 }
 
 .tag-chip-gradient {
@@ -120,31 +98,7 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* 3. 标签详情视图 */
-.tag-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.tag-detail-head {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.tag-chip-lg {
-  font-size: 16px;
-  padding: 12px 26px;
-}
-
-.tag-detail-count {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-/* 4. 创建标签模态 */
+/* 4. 创建标签模态（色板 + 自定义颜色） */
 .tag-swatch-row {
   display: flex;
   flex-wrap: wrap;
@@ -163,12 +117,13 @@
   justify-content: center;
   /* transform 由 framer-motion 接管 */
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  box-shadow: 0 3px 10px var(--tag-swatch-shadow);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
 }
 
 .tag-swatch.active {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--tag-swatch-ring);
+  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.25);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .tag-custom-color {

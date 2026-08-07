@@ -1,0 +1,374 @@
+/* ============================================================
+   albumdetail.css — 相册详情页（独立路由 /albums/:albumid）
+   亮暗双模自适应，移动端优先
+   ============================================================ */
+
+/* 详情页专用 Token */
+:root {
+  --ad-topbar-bg: rgba(255, 255, 255, 0.74);
+  --ad-topbar-border: rgba(255, 255, 255, 0.5);
+  --ad-lock-soft: rgba(245, 158, 11, 0.12);
+  --ad-lock-border: rgba(245, 158, 11, 0.38);
+  --ad-ring: rgba(8, 145, 178, 0.2);
+  --ad-danger-soft: rgba(239, 68, 68, 0.08);
+
+  /* 光箱 Token（ImageLightbox 组件共用，与图库页取值一致） */
+  --g-overlay: rgba(15, 23, 42, 0.45);
+  --g-preview-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+  --g-lightbox-shadow: 0 28px 80px rgba(0, 0, 0, 0.3);
+  --g-danger-soft: rgba(239, 68, 68, 0.1);
+  --g-danger-border: rgba(239, 68, 68, 0.3);
+}
+
+:root[data-theme='dark'] {
+    --ad-topbar-bg: rgba(18, 18, 20, 0.74);
+    --ad-topbar-border: rgba(255, 255, 255, 0.08);
+    --ad-lock-soft: rgba(251, 191, 36, 0.14);
+    --ad-lock-border: rgba(251, 191, 36, 0.42);
+    --ad-ring: rgba(34, 211, 238, 0.28);
+    --ad-danger-soft: rgba(248, 113, 113, 0.12);
+
+    --g-overlay: rgba(2, 6, 23, 0.62);
+    --g-preview-shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
+    --g-lightbox-shadow: 0 30px 90px rgba(0, 0, 0, 0.65);
+    --g-danger-soft: rgba(248, 113, 113, 0.12);
+    --g-danger-border: rgba(248, 113, 113, 0.34);
+}
+
+.album-detail-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 16px 48px;
+}
+
+/* 1. 顶部毛玻璃返回栏（sticky 悬浮） */
+.ad-topbar {
+  position: sticky;
+  top: 10px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  border-radius: 18px;
+  background: var(--ad-topbar-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--ad-topbar-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.ad-back {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text-main);
+  background: var(--nav-pill-bg);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.ad-back:hover {
+  color: var(--accent);
+  background: var(--nav-pill-hover);
+}
+
+.ad-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.ad-title {
+  font-size: 18px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ad-lock-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--warning);
+  background: var(--ad-lock-soft);
+  border: 1px solid var(--ad-lock-border);
+  border-radius: var(--radius-round);
+  padding: 3px 10px;
+  flex-shrink: 0;
+}
+
+.ad-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ad-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  background: var(--nav-pill-bg);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.ad-icon-btn:hover {
+  color: var(--accent);
+  background: var(--nav-pill-hover);
+}
+
+.ad-icon-btn.active {
+  color: var(--accent);
+  background: var(--nav-indicator-bg);
+}
+
+.ad-icon-btn.danger:hover {
+  color: var(--error);
+  background: var(--ad-danger-soft);
+}
+
+/* 2. 相册信息区 */
+.ad-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 6px 4px;
+}
+
+.ad-head-desc {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.ad-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ad-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-round);
+  padding: 5px 12px;
+}
+
+/* 3. 提取码解锁面板（毛玻璃卡片） */
+.ad-unlock-card {
+  width: 100%;
+  max-width: 400px;
+  margin: 56px auto 0;
+  padding: 36px 30px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.ad-unlock-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ad-lock-soft);
+  border: 1px solid var(--ad-lock-border);
+  color: var(--warning);
+  margin-bottom: 4px;
+}
+
+.ad-unlock-title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.ad-unlock-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.ad-unlock-field {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.ad-unlock-input {
+  width: 100%;
+  height: 48px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 15px;
+  text-align: center;
+  letter-spacing: 0.25em;
+  transition: var(--transition-fast);
+}
+
+.ad-unlock-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ad-ring);
+}
+
+.ad-unlock-btn {
+  width: 100%;
+  height: 46px;
+  border-radius: var(--radius-round);
+  background: var(--accent-gradient);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px var(--modal-accent-shadow, rgba(8, 145, 178, 0.3));
+  transition: var(--transition-fast);
+}
+
+.ad-unlock-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+}
+
+.ad-unlock-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 4. 图片网格（移动端 2-3 列，悬停微缩放） */
+.ad-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 14px;
+  padding: 14px 0 8px;
+}
+
+@media (max-width: 600px) {
+  .ad-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .ad-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.ad-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  background: var(--bg-surface-hover);
+  /* transform 由 framer-motion 接管 */
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.ad-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition-smooth);
+}
+
+.ad-item:hover img {
+  transform: scale(1.05);
+}
+
+.ad-item.selecting:hover {
+  border-color: var(--accent-light);
+}
+
+.ad-item.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ad-ring);
+}
+
+.ad-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.42);
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  transition: var(--transition-fast);
+  z-index: 2;
+}
+
+.ad-item.selected .ad-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.ad-name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18px 10px 7px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.62), transparent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 5. 批量操作条：布局复用 pageActions.css 的 .batch-bar，此处仅补旋转器 */
+.ad-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: ad-spin 0.7s linear infinite;
+}
+
+@keyframes ad-spin {
+  to { transform: rotate(360deg); }
+}

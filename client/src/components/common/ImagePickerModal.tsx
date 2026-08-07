@@ -100,11 +100,11 @@ export const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
                 <h3 className="modal-title">{title}</h3>
                 {subtitle && <p className="modal-subtitle">{subtitle}</p>}
               </div>
-              <X size={20} strokeWidth={1.5} className="modal-close" onClick={onClose} />
+              <X size={14} strokeWidth={1.5} className="modal-close" onClick={onClose} />
             </div>
 
             <div className="picker-search">
-              <Search size={16} strokeWidth={1.5} className="picker-search-icon" />
+              <Search size={14} strokeWidth={1.5} className="picker-search-icon" />
               <input
                 className="modal-input"
                 placeholder="搜索图片名称..."
@@ -115,7 +115,7 @@ export const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
 
             {loading ? (
               <div className="picker-empty" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-                <LoaderCircle size={18} strokeWidth={1.5} style={{ animation: 'modal-spin 0.8s linear infinite' }} />
+                <LoaderCircle size={14} strokeWidth={1.5} style={{ animation: 'modal-spin 0.8s linear infinite' }} />
                 正在载入图库...
               </div>
             ) : (

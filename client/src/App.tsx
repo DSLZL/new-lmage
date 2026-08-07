@@ -7,9 +7,10 @@ import { MobileTopBar } from './components/layout/MobileTopBar';
 import { BottomTab } from './components/layout/BottomTab';
 import { Login } from './pages/auth/Login';
 import { Gallery } from './pages/gallery/Gallery';
-import { Albums } from './pages/albums/Albums';
-import { Tags } from './pages/tags/Tags';
-import { Stats } from './pages/stats/Stats';
+import { Manage } from './pages/manage/Manage';
+import { AlbumDetail } from './pages/albums/AlbumDetail';
+import { TagDetail } from './pages/tags/TagDetail';
+import { Profile } from './pages/profile/Profile';
 import { Toaster } from 'sonner';
 
 import './styles/global.css';
@@ -45,10 +46,21 @@ const AppContent: React.FC = () => {
           {/* 游客直接畅行访问主图库 */}
           <Route path="/" element={<Gallery />} />
           
-          {/* 敏感操作：未登录时就地渲染登录页，登录后呈现真实数据 */}
-          <Route path="/albums" element={user ? <Albums /> : <Login />} />
-          <Route path="/tags" element={user ? <Tags /> : <Login />} />
-          <Route path="/stats" element={user ? <Stats /> : <Login />} />
+          {/* 图床管理中心：相册/标签/大盘 多子界面（页面内二级导航） */}
+          <Route path="/manage" element={user ? <Manage /> : <Login />} />
+          <Route path="/manage/tags" element={user ? <Manage /> : <Login />} />
+          <Route path="/manage/stats" element={user ? <Manage /> : <Login />} />
+          
+          {/* 详情页独立路由 */}
+          <Route path="/albums/:albumid" element={user ? <AlbumDetail /> : <Login />} />
+          <Route path="/tags/:tagid" element={user ? <TagDetail /> : <Login />} />
+          
+          {/* 旧列表路由重定向到图床管理中心 */}
+          <Route path="/albums" element={user ? <Navigate to="/manage" replace /> : <Login />} />
+          <Route path="/tags" element={user ? <Navigate to="/manage/tags" replace /> : <Login />} />
+          
+          {/* 我的：游客可看（登录引导），登录后完整个人中心 */}
+          <Route path="/profile" element={<Profile />} />
           
           <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
           <Route path="*" element={<Navigate to="/" />} />

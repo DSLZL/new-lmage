@@ -5,6 +5,16 @@
 
 /* 1. 浅色模式基础 Token */
 :root {
+
+  /* ============================================================
+     高级 SVG 生成式纹理 (Subtle Generative Textures)
+     ============================================================ */
+  --svg-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+  
+  --svg-topo-light: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  
+  --svg-topo-dark: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFFFFF' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+
   /* 基础背景色体系 */
   --bg-main: #f8fafc;
   --bg-surface: #ffffff;
@@ -20,7 +30,7 @@
   --accent-light: #06b6d4;
   --accent-blue: #2563eb;
   --accent-gradient: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%);
-  --accent-glow: 0 0 20px rgba(6, 182, 212, 0.2);
+  
 
   /* 状态色 */
   --success: #10b981;
@@ -28,17 +38,17 @@
   --warning: #f59e0b;
 
   /* 边框与阴影体系 */
-  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-subtle: rgba(0, 0, 0, 0.05);
   --border-active: rgba(8, 145, 178, 0.4);
 
   /* 毛玻璃体系 (Light) */
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-blur: blur(20px);
   --glass-border: rgba(255, 255, 255, 0.5);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+  --glass-shadow: 0 4px 20px rgba(0,0,0,0.02);
 
   /* 骨架间距与极限定制圆角 */
-  --radius-premium: 16px;
+  --radius-premium: 12px;
   --radius-round: 9999px;
 
   /* 动效引擎 */
@@ -46,17 +56,86 @@
   --transition-fast: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 
   /* 导航与交互专属 Token（Header / BottomTab / 快捷按钮共用） */
-  --nav-height: 64px;
+  --nav-height: 52px;
   --nav-pill-bg: rgba(0, 0, 0, 0.04);
   --nav-pill-hover: rgba(0, 0, 0, 0.08);
   --nav-pill-active: var(--accent-gradient);
   --nav-indicator-bg: rgba(8, 145, 178, 0.12);
   --fab-bg: var(--accent-gradient);
-  --fab-shadow: 0 8px 24px rgba(8, 145, 178, 0.35);
-  --accent-glow-strong: rgba(6, 182, 212, 0.35);
+  --fab-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  
   --divider-subtle: rgba(0, 0, 0, 0.07);
-  --cta-glow: 0 4px 16px rgba(6, 182, 212, 0.28);
-  --cta-glow-strong: 0 6px 24px rgba(6, 182, 212, 0.45);
+  
+  
+
+  /* 3. 语义 soft 色（统一化：danger/success/warning/accent 浅底与描边） */
+  --danger-soft: rgba(239, 68, 68, 0.1);
+  --danger-border: rgba(239, 68, 68, 0.3);
+  
+  --success-soft: rgba(16, 185, 129, 0.12);
+  --success-border: rgba(16, 185, 129, 0.3);
+  --warning-soft: rgba(245, 158, 11, 0.14);
+  --warning-border: rgba(245, 158, 11, 0.32);
+  --accent-soft: rgba(8, 145, 178, 0.12);
+  --overlay-bg: rgba(15, 23, 42, 0.45);
+
+  /* 4. 兼容别名（页面/组件本地定义同名值时以本地为准，此处仅兜底） */
+  --g-danger-soft: var(--danger-soft);
+  --g-danger-border: var(--danger-border);
+  
+  --g-overlay: var(--overlay-bg);
+  --g-shimmer-a: var(--shimmer-a);
+  --g-shimmer-b: var(--shimmer-b);
+  --modal-overlay-bg: var(--overlay-bg);
+  --modal-accent-soft: var(--accent-soft);
+  --modal-danger-bg: var(--danger-soft);
+  --modal-danger-border: var(--danger-border);
+  --topbar-shadow: rgba(0, 0, 0, 0.03);
+
+  /* 5. 圆角标尺 */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: var(--radius-premium);
+  --radius-xl: 24px;
+
+  /* 6. 间距标尺 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 10px;
+  --space-4: 12px;
+  --space-5: 18px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --card-padding: 16px;
+
+  /* 7. 移动端 Token（移动端优先级最高） */
+  --tap-target: 44px;
+  --nav-height-mobile: 48px;
+  --sheet-radius: var(--radius-xl);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --input-font-size: 16px;
+
+  /* 8. 毛玻璃悬浮态（GlassCard hover 微浮） */
+  --glass-bg-hover: rgba(255, 255, 255, 0.85);
+  --glass-shadow-hover: 0 8px 30px rgba(0,0,0,0.04);
+
+  /* 9. 骨架扫光色 */
+  --shimmer-a: rgba(255, 255, 255, 0);
+  --shimmer-b: rgba(255, 255, 255, 0.06);
+
+  /* 10. 动效补充 */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* 11. 层级标尺 */
+  --z-header: 100;
+  --z-overlay: 300;
+  --z-toast: 400;
+
+  /* 12. 字体 */
+  --font-serif: 'Noto Serif SC', 'SimSun', 'Songti SC', 'STSong', serif;
+  --font-sans: -apple-system, 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', sans-serif;
 }
 
 /* 2. 深色模式 Token（html[data-theme='dark'] 覆盖） */
@@ -76,7 +155,7 @@
   --accent-light: #67e8f9;
   --accent-blue: #3b82f6;
   --accent-gradient: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
-  --accent-glow: 0 0 30px rgba(34, 211, 238, 0.35);
+  
 
   /* 状态色微调，提升对比度 */
   --success: #22c55e;
@@ -91,15 +170,35 @@
   --glass-bg: rgba(18, 18, 20, 0.65);
   --glass-blur: blur(20px);
   --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+  --glass-shadow: 0 4px 20px rgba(0,0,0,0.02);
 
   /* 深色下导航 Token 覆盖 */
   --nav-pill-bg: rgba(255, 255, 255, 0.05);
   --nav-pill-hover: rgba(255, 255, 255, 0.09);
   --nav-indicator-bg: rgba(34, 211, 238, 0.18);
-  --fab-shadow: 0 10px 28px rgba(34, 211, 238, 0.45);
-  --accent-glow-strong: rgba(34, 211, 238, 0.5);
+  --fab-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  
   --divider-subtle: rgba(255, 255, 255, 0.08);
-  --cta-glow: 0 4px 18px rgba(34, 211, 238, 0.32);
-  --cta-glow-strong: 0 6px 26px rgba(34, 211, 238, 0.5);
+  
+  
+
+  /* 深色下语义 soft 色覆盖 */
+  --danger-soft: rgba(248, 113, 113, 0.12);
+  --danger-border: rgba(248, 113, 113, 0.34);
+  
+  --success-soft: rgba(34, 197, 94, 0.14);
+  --success-border: rgba(34, 197, 94, 0.32);
+  --warning-soft: rgba(251, 191, 36, 0.16);
+  --warning-border: rgba(251, 191, 36, 0.34);
+  --accent-soft: rgba(34, 211, 238, 0.16);
+  --overlay-bg: rgba(2, 6, 23, 0.6);
+  --topbar-shadow: rgba(0, 0, 0, 0.35);
+
+  /* 深色下毛玻璃悬浮态 */
+  --glass-bg-hover: rgba(18, 18, 20, 0.8);
+  --glass-shadow-hover: 0 8px 30px rgba(0,0,0,0.04);
+
+  /* 深色下骨架扫光 */
+  --shimmer-a: rgba(255, 255, 255, 0);
+  --shimmer-b: rgba(255, 255, 255, 0.07);
 }

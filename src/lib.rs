@@ -4,6 +4,10 @@ pub mod handlers;
 
 use worker::*;
 
+/// D1 初始化标记：每个 Worker isolate 只执行一次建表/迁移，
+/// 避免每次请求都跑 10+ 次 D1 查询拖慢图片代理等热路径
+static DB_INIT: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
 #[event(fetch)]
 pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Response> {
     // 1. 跨域 OPTIONS 预检请求快速放行
@@ -12,10 +16,13 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
         return Ok(Response::empty()?.with_headers(headers));
     }
 
-    // 2. ⚡ 零摩擦自愈：每次请求冷启动时，自动初始化数据库所有必需数据表
+    // 2. ⚡ 零摩擦自愈：首次冷启动自动初始化数据库所有必需数据表（仅一次）
     let d1_db = env.d1("DB")?;
-    if let Err(err) = domain::db::init_db(&d1_db).await {
-        console_log!("D1 数据库自动初始化失败: {:?}", err);
+    if !DB_INIT.load(std::sync::atomic::Ordering::Relaxed) {
+        if let Err(err) = domain::db::init_db(&d1_db).await {
+            console_log!("D1 数据库自动初始化失败: {:?}", err);
+        }
+        DB_INIT.store(true, std::sync::atomic::Ordering::Relaxed);
     }
 
     let router = Router::new();

@@ -74,7 +74,7 @@ export const TagSelectModal: React.FC<TagSelectModalProps> = ({
                 <h3 className="modal-title">{title}</h3>
                 {subtitle && <p className="modal-subtitle">{subtitle}</p>}
               </div>
-              <X size={20} strokeWidth={1.5} className="modal-close" onClick={onClose} />
+              <X size={14} strokeWidth={1.5} className="modal-close" onClick={onClose} />
             </div>
 
             {tags.length === 0 ? (

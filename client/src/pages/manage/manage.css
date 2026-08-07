@@ -1,0 +1,121 @@
+/* manage.css — 图床管理中心壳（相册 | 标签 | 大盘 二级导航） */
+
+/* ---------- 二级导航专用 token ---------- */
+:root {
+  --manage-subnav-shadow: 0 10px 32px rgba(15, 23, 42, 0.1), 0 2px 8px rgba(15, 23, 42, 0.05);
+  --manage-subnav-bg: rgba(255, 255, 255, 0.78);
+}
+
+:root[data-theme='dark'] {
+    --manage-subnav-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 2px 10px rgba(0, 0, 0, 0.3);
+    --manage-subnav-bg: rgba(18, 18, 20, 0.72);
+}
+
+/* ---------- 壳容器 ---------- */
+.manage-shell {
+  max-width: 1248px;
+  margin: 0 auto;
+  padding: 20px 24px 40px;
+}
+
+@media (max-width: 768px) {
+  .manage-shell {
+    padding: 12px 12px 24px;
+  }
+}
+
+.manage-content {
+  min-height: 45vh;
+}
+
+/* ---------- 二级导航：sticky 毛玻璃胶囊 ---------- */
+.manage-subnav-wrap {
+  position: sticky;
+  top: calc(var(--nav-height) + 16px + 12px); /* PC 悬浮 Header(64px@16px) 之下 */
+  z-index: 60;
+  margin-bottom: 20px;
+}
+
+.manage-subnav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 5px;
+  background: var(--manage-subnav-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-round);
+  box-shadow: var(--manage-subnav-shadow);
+}
+
+@media (max-width: 768px) {
+  /* 移动端：悬浮顶栏(48px@8px) 之下吸顶，全宽三等分胶囊 */
+  .manage-subnav-wrap {
+    top: calc(8px + 48px + 8px);
+    margin-bottom: 14px;
+  }
+
+  .manage-subnav {
+    width: 100%;
+  }
+}
+
+/* ---------- 胶囊项 ---------- */
+.manage-tab {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 22px;
+  border-radius: var(--radius-round);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* transform 由 framer-motion 接管 */
+  transition: color var(--transition-fast);
+}
+
+.manage-tab:hover {
+  color: var(--text-dark);
+}
+
+.manage-tab.active {
+  color: #fff;
+}
+
+/* layoutId 滑动胶囊：青蓝渐变高亮（与 Header nav-pill-active 同 token） */
+.manage-tab-pill {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: var(--nav-pill-active);
+}
+
+.manage-tab-icon,
+.manage-tab-text {
+  position: relative;
+  z-index: 1;
+}
+
+.manage-tab.active .manage-tab-icon {
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.45));
+}
+
+@media (max-width: 768px) {
+  .manage-tab {
+    padding: 10px 0;
+    font-size: 13.5px;
+    gap: 5px;
+  }
+}

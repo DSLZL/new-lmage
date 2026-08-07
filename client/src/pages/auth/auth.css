@@ -1,54 +1,35 @@
-/* ==================== 登录页专用 Token ==================== */
-:root {
-  --auth-on-accent: #ffffff;
-  --auth-input-bg: rgba(0, 0, 0, 0.03);
-  --auth-input-hover: rgba(0, 0, 0, 0.05);
-  --auth-focus-ring: rgba(8, 145, 178, 0.16);
-  --auth-error-bg: rgba(239, 68, 68, 0.08);
-}
+/* ==================== 登录页（移动端优先，仅用全局自适应 token，无 data-theme） ==================== */
 
-:root[data-theme='dark'] {
-    --auth-input-bg: rgba(255, 255, 255, 0.05);
-    --auth-input-hover: rgba(255, 255, 255, 0.08);
-    --auth-focus-ring: rgba(34, 211, 238, 0.22);
-    --auth-error-bg: rgba(248, 113, 113, 0.1);
-}
-
-/* ==================== 页面骨架 ==================== */
-.auth-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - var(--nav-height) - 48px);
-  padding: 24px 16px;
-}
-
-.auth-card {
-  width: 100%;
-  max-width: 430px;
-}
-
-/* ==================== 玻璃卡片 ==================== */
-.auth-glass {
+/* ==================== 页面骨架：单列、安全区、不裁剪滚动 ==================== */
+.auth-page {
   position: relative;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-premium);
-  box-shadow: var(--glass-shadow);
-  padding: 36px 32px 28px;
+  display: flex;
+  min-height: calc(100vh - var(--mtb-height) - 150px);
+  min-height: calc(100dvh - var(--mtb-height) - 150px);
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 20px
+    calc(28px + env(safe-area-inset-bottom, 0px));
   overflow: hidden;
 }
 
-.auth-glass::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+/* margin:auto 实现"空间足够时居中、内容超高时可滚动且顶部不被裁切" */
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+}
+
+/* ==================== 移动端：无卡片全屏表单 ==================== */
+.auth-glass {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .auth-glass.shake {
@@ -81,31 +62,63 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 26px;
+}
+
+/* 呼吸光晕，衬托 Logo */
+.auth-logo-halo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.auth-logo-halo::before {
+  content: '';
+  position: absolute;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow-strong) 0%, transparent 66%);
+  filter: blur(8px);
+  z-index: -1;
+  animation: auth-halo-breathe 5s ease-in-out infinite;
+}
+
+@keyframes auth-halo-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
 }
 
 .auth-title {
-  margin-top: 12px;
+  margin-top: 14px;
   font-size: 26px;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
 .auth-subtitle {
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: 13px;
   color: var(--text-muted);
 }
 
-/* ==================== 模式切换滑块 ==================== */
+/* ==================== 模式切换胶囊（layoutId 滑动） ==================== */
 .auth-mode-switch {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px;
   padding: 4px;
-  margin-bottom: 28px;
-  background: var(--auth-input-bg);
+  margin-bottom: 26px;
+  background: var(--nav-pill-bg);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-round);
 }
@@ -115,15 +128,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 40px;
+  height: 44px;
   border-radius: var(--radius-round);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
   cursor: pointer;
   transition: color 0.25s ease;
   z-index: 1;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .auth-mode-btn:hover:not(:disabled) {
@@ -145,7 +159,7 @@
 }
 
 .auth-mode-btn.active {
-  color: var(--auth-on-accent);
+  color: var(--auth-on-accent, #ffffff);
 }
 
 .auth-mode-label {
@@ -154,11 +168,11 @@
   gap: 6px;
 }
 
-/* ==================== 表单 ==================== */
+/* ==================== 表单：大触控区 ==================== */
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
 }
 
 .form-group {
@@ -182,31 +196,40 @@
 
 .input-icon {
   position: absolute;
-  left: 14px;
+  left: 15px;
+  display: inline-flex;
   color: var(--text-dark);
   pointer-events: none;
+  transition: color var(--transition-fast);
 }
 
 .form-input {
   width: 100%;
-  height: 46px;
-  padding: 0 14px 0 42px;
-  background: var(--auth-input-bg);
+  height: 50px;
+  padding: 0 16px 0 46px;
+  background: var(--nav-pill-bg);
   border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: 14px;
+  /* 16px 关键细节：防止 iOS 聚焦时页面自动放大 */
+  font-size: 16px;
   color: var(--text-main);
   transition: var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.75;
 }
 
 .form-input:hover:not(:disabled) {
-  background: var(--auth-input-hover);
+  background: var(--nav-pill-hover);
 }
 
 .form-input:focus {
   border-color: var(--accent);
   background: var(--bg-surface);
-  box-shadow: 0 0 0 3px var(--auth-focus-ring);
+  box-shadow: 0 0 0 3px var(--nav-indicator-bg);
 }
 
 .form-input:disabled {
@@ -215,36 +238,38 @@
 }
 
 .form-input-password {
-  padding-right: 46px;
+  padding-right: 56px;
 }
 
+/* 错误态：输入框红描边 + 柔光 */
 .input-wrapper.has-error .form-input {
   border-color: var(--error);
-  box-shadow: 0 0 0 3px var(--auth-error-bg);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--error) 14%, transparent);
 }
 
 .input-wrapper.has-error .input-icon {
   color: var(--error);
 }
 
-/* 密码显示/隐藏切换 */
+/* 密码显示/隐藏切换：44px 触控目标 */
 .password-toggle {
   position: absolute;
-  right: 6px;
-  width: 34px;
-  height: 34px;
+  right: 7px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 12px;
   color: var(--text-muted);
   cursor: pointer;
   transition: var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .password-toggle:hover:not(:disabled) {
   color: var(--accent-light);
-  background: var(--auth-input-hover);
+  background: var(--nav-pill-hover);
 }
 
 .password-toggle:disabled {
@@ -252,48 +277,70 @@
   cursor: not-allowed;
 }
 
-/* 内联字段错误 */
+/* ==================== 内联字段错误 ==================== */
 .field-error {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.45;
   color: var(--error);
   overflow: hidden;
 }
 
-.field-error::before {
-  content: '';
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--error);
+.field-error-icon {
   flex-shrink: 0;
 }
 
-/* 提交按钮 */
+/* ==================== 密码强度指示 ==================== */
+.strength-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: -8px;
+  padding: 0 2px;
+}
+
+.strength-bars {
+  display: flex;
+  gap: 6px;
+}
+
+.strength-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-round);
+  background: var(--nav-pill-bg);
+  transition: background 0.25s ease;
+}
+
+.strength-label {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+/* ==================== 提交按钮：青蓝渐变 CTA ==================== */
 .submit-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 48px;
-  margin-top: 2px;
+  height: 54px;
+  margin-top: 4px;
   background: var(--accent-gradient);
-  border-radius: 12px;
-  box-shadow: var(--fab-shadow);
-  color: var(--auth-on-accent);
-  font-size: 14px;
+  border-radius: 14px;
+  color: #ffffff;
+  font-size: 15px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   cursor: pointer;
   transition: var(--transition-smooth);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: var(--accent-glow), var(--fab-shadow);
 }
 
 .submit-btn:disabled {
@@ -337,4 +384,104 @@
 .auth-guest-link:hover {
   color: var(--accent);
   transform: translateX(2px);
+}
+
+/* ==================== 氛围光斑 ==================== */
+.auth-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.5;
+  pointer-events: none;
+  animation: auth-float 14s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.auth-orb-cyan {
+  width: 260px;
+  height: 260px;
+  top: -60px;
+  right: -90px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.3), transparent 70%);
+}
+
+.auth-orb-blue {
+  width: 300px;
+  height: 300px;
+  bottom: -110px;
+  left: -100px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.24), transparent 70%);
+  animation-delay: -7s;
+  animation-duration: 18s;
+}
+
+@keyframes auth-float {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(24px, -18px, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(-16px, 14px, 0) scale(0.98);
+  }
+}
+
+/* ==================== 桌面端：居中玻璃卡片 ==================== */
+@media (min-width: 769px) {
+  .auth-page {
+    min-height: calc(100vh - var(--nav-height) - 48px);
+    padding: 40px 16px;
+  }
+
+  .auth-glass {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-premium);
+    box-shadow: var(--glass-shadow);
+    padding: 40px 36px 30px;
+  }
+
+  /* 卡片顶部高光细线 */
+  .auth-glass::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+  }
+
+  .auth-title {
+    font-size: 28px;
+  }
+
+  .form-input {
+    height: 48px;
+    font-size: 14px;
+  }
+
+  .submit-btn {
+    height: 50px;
+  }
+
+  .auth-orb {
+    opacity: 0.6;
+  }
+}
+
+/* ==================== 动效降级 ==================== */
+@media (prefers-reduced-motion: reduce) {
+  .auth-orb,
+  .auth-logo-halo::before,
+  .btn-spinner {
+    animation: none !important;
+  }
+
+  .auth-glass.shake {
+    animation: none !important;
+  }
 }

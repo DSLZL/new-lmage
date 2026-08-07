@@ -77,7 +77,7 @@ export const CreateAlbumModal: React.FC<CreateAlbumModalProps> = ({ open, onClos
                 <h3 className="modal-title">创建全新相册</h3>
                 <p className="modal-subtitle">归档你的影像，可选提取码设为私密相册</p>
               </div>
-              <X size={20} strokeWidth={1.5} className="modal-close" onClick={onClose} />
+              <X size={14} strokeWidth={1.5} className="modal-close" onClick={onClose} />
             </div>
 
             <div className="modal-field">

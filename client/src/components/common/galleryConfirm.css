@@ -89,7 +89,6 @@
 
 .g-confirm-btn.danger:hover:not(:disabled) {
   border-color: var(--error);
-  box-shadow: 0 6px 20px var(--g-danger-glow);
 }
 
 .g-confirm-btn:disabled {

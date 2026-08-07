@@ -1,0 +1,172 @@
+/* animations.css — 全站统一动效关键帧与工具类
+   由 global.css @import 引入（Vite 构建时内联）
+   命名统一加 anim- 前缀，避免与页面私有关键帧（g-spin / shimmer / zone-breathe 等）冲突 */
+
+/* ============ 1. 关键帧 ============ */
+
+/* 入场：淡入 + 上浮（卡片 / 区块首选） */
+@keyframes anim-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 入场：淡入 */
+@keyframes anim-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 入场：缩放（弹层 / 徽标 / 悬浮元素） */
+@keyframes anim-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 骨架扫光（配合 .anim-shimmer 的渐变背景使用） */
+@keyframes anim-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 底部弹层滑入（移动端 Sheet / 抽屉） */
+@keyframes anim-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* 呼吸（装饰灯光 / 焦点元素） */
+@keyframes anim-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+/* 柔和脉冲（加载点 / 状态徽标） */
+@keyframes anim-pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.94);
+  }
+}
+
+/* 旋转（渐变环 / 图标） */
+@keyframes anim-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============ 2. 工具类 ============ */
+
+.anim-fade-in-up {
+  animation: anim-fade-in-up 0.5s var(--ease-out-expo) both;
+}
+
+.anim-fade-in {
+  animation: anim-fade-in 0.4s ease-out both;
+}
+
+.anim-scale-in {
+  animation: anim-scale-in 0.45s var(--ease-out-expo) both;
+}
+
+.anim-sheet-up {
+  animation: anim-sheet-up 0.45s var(--ease-out-expo) both;
+}
+
+.anim-shimmer {
+  background: linear-gradient(90deg, var(--shimmer-a) 25%, var(--shimmer-b) 50%, var(--shimmer-a) 75%);
+  background-size: 200% 100%;
+  animation: anim-shimmer 1.6s linear infinite;
+}
+
+.anim-breathe {
+  animation: anim-breathe 3.2s ease-in-out infinite;
+}
+
+.anim-pulse-soft {
+  animation: anim-pulse-soft 1.6s ease-in-out infinite;
+}
+
+.anim-spin {
+  animation: anim-spin 0.9s linear infinite;
+}
+
+/* 时长修饰 */
+.anim-fast {
+  animation-duration: 0.3s;
+}
+
+.anim-slow {
+  animation-duration: 0.8s;
+}
+
+/* 入场错峰（页面骨架逐块浮现） */
+.anim-delay-1 {
+  animation-delay: 80ms;
+}
+
+.anim-delay-2 {
+  animation-delay: 160ms;
+}
+
+.anim-delay-3 {
+  animation-delay: 240ms;
+}
+
+.anim-delay-4 {
+  animation-delay: 320ms;
+}
+
+.anim-delay-5 {
+  animation-delay: 400ms;
+}
+
+/* ============ 3. 尊重系统减弱动效 ============ */
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade-in-up,
+  .anim-fade-in,
+  .anim-scale-in,
+  .anim-sheet-up,
+  .anim-shimmer,
+  .anim-breathe,
+  .anim-pulse-soft,
+  .anim-spin {
+    animation: none !important;
+  }
+}

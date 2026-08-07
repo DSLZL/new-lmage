@@ -65,3 +65,86 @@
   /* transform 由 framer-motion 接管 */
   transition: box-shadow var(--transition-fast);
 }
+
+/* ============================================================
+   图库专属空状态极致化（仅作用于 .g-empty，不影响相册等页面）
+   ============================================================ */
+
+/* 插画辉光底衬 */
+.g-empty-art {
+  position: relative;
+}
+
+.g-empty-art::after {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--accent-soft), transparent 72%);
+  pointer-events: none;
+}
+
+/* 标题青蓝渐变字 */
+.g-empty-title {
+  background: linear-gradient(120deg, var(--text-main) 40%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 行动按钮：hover 扫光 + 呼吸辉光 */
+.g-empty-action {
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow var(--transition-fast);
+}
+
+.g-empty-action:hover {
+}
+
+.g-empty-action::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -70%;
+  width: 42%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.55s ease;
+}
+
+.g-empty-action:hover::before {
+  left: 130%;
+}
+
+/* 光芒自转（以画框内旭日 120,66 为轴心）与气泡上浮 */
+.g-empty-rays {
+  transform-box: view-box;
+  transform-origin: 120px 66px;
+  animation: g-empty-spin 26s linear infinite;
+}
+
+@keyframes g-empty-spin {
+  to { transform: rotate(360deg); }
+}
+
+.g-empty-bubble {
+  animation: g-empty-bubble 4.5s ease-in-out infinite;
+}
+
+@keyframes g-empty-bubble {
+  0%, 100% { transform: translateY(0); opacity: 0.3; }
+  50% { transform: translateY(-9px); opacity: 0.8; }
+}
+
+/* 动效降级 */
+@media (prefers-reduced-motion: reduce) {
+  .g-empty-rays,
+  .g-empty-bubble,
+  .g-empty-svg {
+    animation: none;
+  }
+}

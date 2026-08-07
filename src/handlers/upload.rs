@@ -1,6 +1,57 @@
 use crate::core::{cors, crypto, tg};
 use crate::domain::image::{self, Image};
+use worker::d1::D1Database;
 use worker::*;
+
+/// 游客上传限速：每分钟最多 5 张（D1 计数，窗口按分钟滚动）
+const GUEST_RATE_LIMIT_PER_MIN: i64 = 5;
+const RATE_WINDOW_MS: i64 = 60_000;
+
+async fn enforce_guest_rate_limit(db: &D1Database) -> Result<()> {
+    let now = Date::now().as_millis() as i64;
+
+    #[derive(serde::Deserialize)]
+    struct LimitRow {
+        window_start: i64,
+        count: i64,
+    }
+
+    let row = db
+        .prepare("SELECT window_start, count FROM upload_limits WHERE key = 'anonymous'")
+        .first::<LimitRow>(None)
+        .await?;
+
+    match row {
+        None => {
+            db.prepare(
+                "INSERT INTO upload_limits (key, window_start, count) VALUES ('anonymous', ?, 1)",
+            )
+            .bind(&[crate::domain::db::int_i64(now)])?
+            .run()
+            .await?;
+            Ok(())
+        }
+        Some(r) => {
+            if now - r.window_start >= RATE_WINDOW_MS {
+                // 窗口过期，重置计数
+                db.prepare("UPDATE upload_limits SET window_start = ?, count = 1 WHERE key = 'anonymous'")
+                    .bind(&[crate::domain::db::int_i64(now)])?
+                    .run()
+                    .await?;
+                Ok(())
+            } else if r.count >= GUEST_RATE_LIMIT_PER_MIN {
+                Err(Error::from("游客上传限速：每分钟最多 5 张，登录后不限速"))
+            } else {
+                db.prepare(
+                    "UPDATE upload_limits SET count = count + 1 WHERE key = 'anonymous'",
+                )
+                .run()
+                .await?;
+                Ok(())
+            }
+        }
+    }
+}
 
 pub async fn upload(mut req: Request, env: Env) -> Result<Response> {
     let db = env.d1("DB")?;
@@ -13,6 +64,13 @@ pub async fn upload(mut req: Request, env: Env) -> Result<Response> {
         Ok(claims) => claims.sub,
         Err(_) => "anonymous".to_string(),
     };
+
+    // 1.5 游客限速：未登录每分钟最多 5 张，登录用户不限
+    if user_id == "anonymous" {
+        if let Err(rate_err) = enforce_guest_rate_limit(&db).await {
+            return Response::error(rate_err.to_string(), 429);
+        }
+    }
 
     // 2. 文件上传体限制 (20MB)
     if let Some(content_length) = req.headers().get("content-length")? {

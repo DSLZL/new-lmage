@@ -1,78 +1,85 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { UploadCloud } from 'lucide-react';
-import { TAB_ITEMS, requestUpload } from '../../config/navigation';
+import { toast } from 'sonner';
+import { useAuth } from '../../context/AuthContext';
+import { TAB_ITEMS } from '../../config/navigation';
 import './bottomtab.css';
 
 /**
- * 移动端底部 Tab 导航：图库|相册 ⚡ FAB ⚡ 标签|大盘 对称五段
- * 账户入口已上移至 MobileTopBar，此处只保留页面导航与上传主操作
+ * 移动端底部 Tab 导航：灵动岛聚合式设计 (Dynamic Island)
+ * 数据源 TAB_ITEMS（config/navigation）
  */
 export const BottomTab: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 按主次切分左右两组：左（图库、相册）+ 右（标签、大盘）
-  const leftGroup = TAB_ITEMS.slice(0, 2);
-  const rightGroup = TAB_ITEMS.slice(2);
-
-  const vibrate = () => {
+  const vibrate = (pattern: number | number[] = 15) => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(15);
+      navigator.vibrate(pattern);
     }
   };
 
-  const handleTabClick = (path: string) => {
+  const handleTabClick = (tab: (typeof TAB_ITEMS)[number]) => {
+    if (tab.requiresAuth && !user) {
+      vibrate([20, 30, 20]); // 错误/受限的双震动反馈
+      toast.info('加入 LMage 即可解锁画廊管理与私有相册', { icon: '✨' });
+      navigate('/login');
+      return;
+    }
     vibrate();
-    navigate(path);
+    navigate(tab.path);
   };
 
   const renderTab = (tab: (typeof TAB_ITEMS)[number]) => {
     const Icon = tab.icon;
-    const active = location.pathname === tab.path;
+    const active =
+      location.pathname === tab.path || location.pathname.startsWith(`${tab.path}/`);
+
     return (
       <button
         key={tab.id}
         type="button"
-        className={`bt-item ${active ? 'active' : ''}`}
-        onClick={() => handleTabClick(tab.path)}
+        className={`bt-item group ${active ? 'active' : ''}`}
+        onClick={() => handleTabClick(tab)}
+        aria-current={active ? 'page' : undefined}
       >
-        <span className="bt-item-icon-wrap">
-          {active && (
-            <motion.span
-              layoutId="tab-indicator"
-              className="bt-indicator"
-              transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-            />
-          )}
-          <Icon size={20} strokeWidth={1.5} fill={active ? 'currentColor' : 'none'} className="bt-item-icon" />
-        </span>
-        <span className={`bt-item-label ${active ? 'premium-gradient-text' : ''}`}>{tab.label}</span>
+        {/* 图标 (附带丝滑跳动) */}
+        <motion.span
+          className="bt-item-icon-wrap"
+          animate={{ y: active ? -1 : 0 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        >
+          <Icon
+            size={22}
+            strokeWidth={1.8}
+            className="bt-item-icon"
+            fill={active ? 'currentColor' : 'none'}
+          />
+        </motion.span>
+
+        {/* 极致小巧加粗的文字 */}
+        <span className="bt-item-label">{tab.label}</span>
+
+        {/* 底部跳动的光点游标 */}
+        {active && (
+          <motion.div
+            layoutId="bt-dot-indicator"
+            className="bt-dot-indicator"
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          />
+        )}
       </button>
     );
   };
 
   return (
-    <div className="mobile-bottom-tab">
-      {/* 左组：图库 / 相册 */}
-      <div className="bt-group">{leftGroup.map(renderTab)}</div>
-
-      {/* 中央凸起上传 FAB */}
-      <div className="bt-fab-zone">
-        <motion.button
-          type="button"
-          className="bt-fab"
-          aria-label="上传图片"
-          onClick={requestUpload}
-          whileTap={{ scale: 0.9 }}
-        >
-          <UploadCloud size={22} strokeWidth={1.8} />
-        </motion.button>
+    <nav className="mobile-bottom-tab" aria-label="底部导航">
+      <div className="bt-container">
+        {TAB_ITEMS.map(renderTab)}
       </div>
-
-      {/* 右组：标签 / 大盘 */}
-      <div className="bt-group">{rightGroup.map(renderTab)}</div>
-    </div>
+    </nav>
   );
 };
+

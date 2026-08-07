@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertTriangle,
@@ -12,11 +12,14 @@ import {
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 import type { Image } from '../../services/api';
-import { UPLOAD_EVENT, SEARCH_EVENT } from '../../config/navigation';
+import { SEARCH_EVENT } from '../../config/navigation';
 import { UploadZone } from '../../components/common/UploadZone';
 import type { UploadProgress } from '../../components/common/UploadZone';
+import { GalleryFilterBar } from '../../components/common/GalleryFilterBar';
+import type { GalleryFilter } from '../../components/common/GalleryFilterBar';
 import { GallerySkeleton } from '../../components/common/GallerySkeleton';
 import { GalleryEmpty } from '../../components/common/GalleryEmpty';
 import { ImageLightbox } from '../../components/common/ImageLightbox';
@@ -25,8 +28,8 @@ import './gallery.css';
 import '../../components/common/galleryList.css';
 import '../../components/common/galleryConfirm.css';
 
-/** 浏览模式单页条数（配合「加载更多」按钮） */
-const PAGE_SIZE = 24;
+/** 浏览模式单页条数（配合「加载更多」按钮，大页承载筛选排序） */
+const PAGE_SIZE = 32;
 
 /** 删除确认弹层状态：批量回收站 / 单张物理抹除 */
 type ConfirmState =
@@ -35,6 +38,7 @@ type ConfirmState =
   | null;
 
 export const Gallery: React.FC = () => {
+  const { user } = useAuth();
   const [images, setImages] = useState<Image[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -44,6 +48,9 @@ export const Gallery: React.FC = () => {
   // 搜索（300ms 防抖，activeQuery 为实际生效的关键词）
   const [query, setQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
+
+  // 筛选（客户端对已加载列表排序，不改变分页数据源）
+  const [filter, setFilter] = useState<GalleryFilter>('all');
 
   // 上传
   const [uploading, setUploading] = useState(false);
@@ -58,8 +65,14 @@ export const Gallery: React.FC = () => {
   // 联动引用
   const zoneRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-  const [flashKey, setFlashKey] = useState(0);
-  const reqSeq = useRef(0);
+    const reqSeq = useRef(0);
+
+  // 客户端排序：最近上传 = uploaded_at 倒序，浏览最多 = views 倒序（仅作用于已加载列表）
+  const sortedImages = useMemo(() => {
+    if (filter === 'recent') return [...images].sort((a, b) => b.uploaded_at - a.uploaded_at);
+    if (filter === 'popular') return [...images].sort((a, b) => b.views - a.views);
+    return images;
+  }, [images, filter]);
 
   /* ---------- 数据拉取（seq 竞态护栏，防止慢响应覆盖新结果） ---------- */
 
@@ -135,23 +148,19 @@ export const Gallery: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeQuery]);
 
-  /* ---------- 全局事件联动（Header 上传 / 搜索快捷按钮） ---------- */
+  /* ---------- 全局事件联动（Header 搜索快捷按钮） ---------- */
 
   const scrollToUpload = () => {
     zoneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setFlashKey((k) => k + 1);
   };
 
   useEffect(() => {
-    const onUploadEvent = () => scrollToUpload();
     const onSearchEvent = () => {
       searchRef.current?.focus();
       searchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
-    window.addEventListener(UPLOAD_EVENT, onUploadEvent);
     window.addEventListener(SEARCH_EVENT, onSearchEvent);
     return () => {
-      window.removeEventListener(UPLOAD_EVENT, onUploadEvent);
       window.removeEventListener(SEARCH_EVENT, onSearchEvent);
     };
   }, []);
@@ -239,18 +248,25 @@ export const Gallery: React.FC = () => {
 
   return (
     <div className="gallery-container">
-      <UploadZone
-        onFiles={handleFiles}
-        uploading={uploading}
-        progress={progress}
-        zoneRef={zoneRef}
-        flashKey={flashKey}
-      />
+      {/* 上传区（仅对登录用户展示） */}
+      {user && (
+        <div className="g-upload-wrap">
+          <UploadZone
+            onFiles={handleFiles}
+            uploading={uploading}
+            progress={progress}
+            zoneRef={zoneRef}
+          />
+        </div>
+      )}
+
+      {/* 筛选 chips：全部 / 最近上传 / 浏览最多 */}
+      <GalleryFilterBar value={filter} onChange={setFilter} />
 
       {/* 工具栏 */}
       <div className="gallery-toolbar">
         <div className="search-box">
-          <Search size={18} strokeWidth={1.5} className="search-icon" />
+          <Search size={14} strokeWidth={1.5} className="search-icon" />
           <input
             ref={searchRef}
             type="text"
@@ -270,7 +286,7 @@ export const Gallery: React.FC = () => {
           <AnimatePresence>
             {selectedIds.length > 0 && (
               <motion.div
-                className="batch-bar"
+                className="gallery-batch-bar"
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
@@ -302,9 +318,7 @@ export const Gallery: React.FC = () => {
       {!loading && images.length > 0 && (
         <div className="gallery-count">
           {activeQuery ? (
-            <span>
-              搜索「<em className="count-query">{activeQuery}</em>」共 {images.length} 张
-            </span>
+            <span>搜索「<em className="count-query">{activeQuery}</em>」共 {images.length} 张</span>
           ) : (
             <span>共 {formatNumber(total)} 张图片</span>
           )}
@@ -316,19 +330,19 @@ export const Gallery: React.FC = () => {
         <GallerySkeleton count={12} />
       ) : images.length === 0 ? (
         <GalleryEmpty
-          title={activeQuery ? '没有找到匹配的图片' : '图库空空如也'}
+          title={activeQuery ? '没有找到匹配的图片' : (user ? '图库空空如也' : '期待第一幅作品的诞生')}
           description={
             activeQuery
               ? '换个关键词试试，或清除搜索浏览全部图片。'
-              : '把图片拖进上方上传区，瞬间完成中转归档。'
+              : (user ? '把图片拖进上方上传区，瞬间完成中转归档。' : '这座艺术馆还在等待它的第一批展品。')
           }
-          actionText={activeQuery ? '清除搜索' : '去上传第一张图'}
-          onAction={activeQuery ? () => setQuery('') : scrollToUpload}
+          actionText={activeQuery ? '清除搜索' : (user ? '去上传第一张图' : '登录开启你的创作')}
+          onAction={activeQuery ? () => setQuery('') : (user ? scrollToUpload : () => window.location.href = '/login')}
         />
       ) : (
         <div className="masonry-grid">
           <AnimatePresence>
-            {images.map((img, i) => {
+            {sortedImages.map((img, i) => {
               const selected = selectedIds.includes(img.id);
               return (
                 <motion.div
@@ -337,6 +351,7 @@ export const Gallery: React.FC = () => {
                   initial={{ opacity: 0, y: 26 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.94 }}
+                  whileTap={{ scale: 0.97 }}
                   transition={{ delay: Math.min(i * 0.02, 0.35), duration: 0.42, ease: 'easeOut' }}
                   onClick={() => setLightboxImage(img)}
                 >
@@ -347,21 +362,14 @@ export const Gallery: React.FC = () => {
                     loading="lazy"
                     draggable={false}
                   />
-                  <button
-                    className="card-select"
-                    onClick={(e) => toggleSelect(img.id, e)}
-                    aria-label={selected ? '取消选择' : '选择图片'}
-                  >
+                  <button className="card-select" onClick={(e) => toggleSelect(img.id, e)} aria-label={selected ? '取消选择' : '选择图片'}>
                     {selected && <Check size={12} strokeWidth={2.5} />}
                   </button>
                   <div className="masonry-overlay">
                     <p className="masonry-title">{img.file_name}</p>
                     <div className="masonry-meta">
                       <span>{formatBytes(img.file_size)}</span>
-                      <span className="masonry-views">
-                        <Eye size={11} strokeWidth={1.5} />
-                        {formatNumber(img.views)}
-                      </span>
+                      <span className="masonry-views"><Eye size={11} strokeWidth={1.5} />{formatNumber(img.views)}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -384,9 +392,9 @@ export const Gallery: React.FC = () => {
             disabled={loadingMore}
           >
             {loadingMore ? (
-              <Loader2 size={16} strokeWidth={1.5} className="g-spin" />
+              <Loader2 size={14} strokeWidth={1.5} className="g-spin" />
             ) : (
-              <ImagePlus size={16} strokeWidth={1.5} />
+              <ImagePlus size={14} strokeWidth={1.5} />
             )}
             {loadingMore ? '正在加载...' : `加载更多（${images.length} / ${formatNumber(total)}）`}
           </motion.button>
@@ -434,12 +442,7 @@ const GalleryConfirm: React.FC<GalleryConfirmProps> = ({ state, busy, onConfirm,
           <motion.div
             className="g-confirm-card"
             initial={{ opacity: 0, y: 36, scale: 0.94 }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              transition: { type: 'spring', stiffness: 380, damping: 30 },
-            }}
+            animate={{ opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 380, damping: 30 } }}
             exit={{ opacity: 0, y: 18, scale: 0.96, transition: { duration: 0.16 } }}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
@@ -449,14 +452,10 @@ const GalleryConfirm: React.FC<GalleryConfirmProps> = ({ state, busy, onConfirm,
               <AlertTriangle size={22} strokeWidth={1.5} />
             </div>
             <h3 className="g-confirm-title">
-              {state.kind === 'batch'
-                ? `将 ${state.ids.length} 张图片移入回收站？`
-                : '永久删除这张图片？'}
+              {state.kind === 'batch' ? `将 ${state.ids.length} 张图片移入回收站？` : '永久删除这张图片？'}
             </h3>
             <p className="g-confirm-desc">
-              {state.kind === 'batch'
-                ? '回收站内的图片不再于图库展示，可随时恢复。'
-                : '此操作将同步删除 Telegram 频道中的原始消息，且不可恢复。'}
+              {state.kind === 'batch' ? '回收站内的图片不再于图库展示，可随时恢复。' : '此操作将同步删除 Telegram 频道中的原始消息，且不可恢复。'}
             </p>
             <div className="g-confirm-actions">
               <button className="g-confirm-btn" onClick={onCancel} disabled={busy}>

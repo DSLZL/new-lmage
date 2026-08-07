@@ -1,6 +1,6 @@
 // 大一统导航数据源：Header / BottomTab 共用，一处修改全站同步
 import type { LucideIcon } from 'lucide-react';
-import { Image, FolderHeart, Tags, BarChart3 } from 'lucide-react';
+import { Image, LayoutGrid, User } from 'lucide-react';
 
 export interface NavItem {
   id: string;
@@ -20,39 +20,30 @@ export interface NavGroup {
 /** 顶部导航分组（PC 端 Header 使用） */
 export const NAV_GROUPS: NavGroup[] = [
   {
-    id: 'browse',
+    id: 'main',
     label: '浏览',
     items: [
       { id: 'gallery', path: '/', label: '图库', icon: Image },
-      { id: 'albums', path: '/albums', label: '相册', icon: FolderHeart, requiresAuth: true },
+      { id: 'manage', path: '/manage', label: '画廊', icon: LayoutGrid, requiresAuth: true },
     ],
   },
   {
-    id: 'tools',
-    label: '工具',
-    items: [
-      { id: 'tags', path: '/tags', label: '标签', icon: Tags, requiresAuth: true },
-      { id: 'stats', path: '/stats', label: '大盘', icon: BarChart3, requiresAuth: true },
-    ],
+    id: 'personal',
+    label: '个人',
+    items: [{ id: 'profile', path: '/profile', label: '我的', icon: User }],
   },
 ];
 
-/** 底部 Tab 精简版（移动端 BottomTab 使用，按主次排序） */
+/** 底部 Tab（移动端 BottomTab 使用）：图库 | 画廊 | 我的
+ * 画廊 = 管理中心（相册 / 标签 / 大盘 多子界面，/manage 二级导航） */
 export const TAB_ITEMS: NavItem[] = [
   { id: 'gallery', path: '/', label: '图库', icon: Image },
-  { id: 'albums', path: '/albums', label: '相册', icon: FolderHeart, requiresAuth: true },
-  { id: 'tags', path: '/tags', label: '标签', icon: Tags, requiresAuth: true },
-  { id: 'stats', path: '/stats', label: '大盘', icon: BarChart3, requiresAuth: true },
+  { id: 'manage', path: '/manage', label: '画廊', icon: LayoutGrid, requiresAuth: true },
+  { id: 'profile', path: '/profile', label: '我的', icon: User },
 ];
 
-/** 全局快捷动作事件名：Header 上传按钮 -> 页面上传区联动 */
-export const UPLOAD_EVENT = 'app:open-upload';
+/** 全局快捷动作事件名：Header 搜索按钮 -> 图库搜索框联动 */
 export const SEARCH_EVENT = 'app:open-search';
-
-/** 触发全局上传 */
-export function requestUpload() {
-  window.dispatchEvent(new CustomEvent(UPLOAD_EVENT));
-}
 
 /** 触发全局搜索 */
 export function requestSearch() {

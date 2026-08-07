@@ -1,0 +1,100 @@
+/* ============================================================
+   PageHeader.css — 移动端页面头（毛玻璃 sticky）
+   依赖 tokens：--glass-* / --text-* / --nav-* / --accent-* / --border-*
+   亮暗双模由 data-theme 驱动；≤768px 展示，桌面端隐藏
+   ============================================================ */
+
+/* 组件局部 token */
+:root {
+  --page-header-bg: rgba(255, 255, 255, 0.72);
+  --page-header-border: rgba(255, 255, 255, 0.55);
+  --page-header-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
+}
+
+:root[data-theme='dark'] {
+  --page-header-bg: rgba(18, 18, 20, 0.7);
+  --page-header-border: rgba(255, 255, 255, 0.06);
+  --page-header-shadow: 0 8px 28px rgba(0, 0, 0, 0.42);
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 10px 16px;
+  background: var(--page-header-bg);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  border-bottom: 1px solid var(--page-header-border);
+  box-shadow: var(--page-header-shadow);
+  z-index: 80;
+  transition: var(--transition-smooth);
+}
+
+.page-header-sticky {
+  position: sticky;
+  top: 0;
+}
+
+/* ---------- 返回按钮 ---------- */
+.page-header-back {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.page-header-back:active,
+.page-header-back:hover {
+  color: var(--accent);
+  background: var(--nav-pill-hover);
+}
+
+/* ---------- 标题区 ---------- */
+.page-header-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.page-header-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-header-subtitle {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- 右侧插槽 ---------- */
+.page-header-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 桌面端隐藏（与 MobileTopBar 同断点规则） */
+@media (min-width: 769px) {
+  .page-header {
+    display: none;
+  }
+}

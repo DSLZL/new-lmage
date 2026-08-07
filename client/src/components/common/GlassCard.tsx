@@ -1,34 +1,71 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
+export type GlassCardPadding = 'none' | 'sm' | 'md' | 'lg';
+
 interface GlassCardProps {
   children: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
   onClick?: () => void;
+  /** 是否启用 hover 微浮与发光（默认开启） */
   hoverGlow?: boolean;
+  /** 内边距变体：none=0 / sm=16px / md=24px / lg=32px */
+  padding?: GlassCardPadding;
 }
 
-export const GlassCard: React.FC<GlassCardProps> = ({ children, onClick, hoverGlow = true }) => {
+const PADDING_MAP: Record<Exclude<GlassCardPadding, 'md'>, string> = {
+  none: '0px',
+  sm: 'var(--space-4)',
+  lg: 'var(--space-6)',
+};
+
+export const GlassCard: React.FC<GlassCardProps> = ({
+  children,
+  className,
+  style,
+  onClick,
+  hoverGlow = true,
+  padding = 'md',
+}) => {
+  const interactive = hoverGlow || Boolean(onClick);
+
+  const cardStyle: React.CSSProperties = {
+    background: 'var(--glass-bg)',
+    backdropFilter: 'var(--glass-blur)',
+    WebkitBackdropFilter: 'var(--glass-blur)',
+    border: '1px solid var(--glass-border)',
+    borderRadius: 'var(--radius-premium)',
+    boxShadow: 'var(--glass-shadow)',
+    /* 默认 padding 走 token；页面可用 --glass-card-padding 覆写 */
+    padding: 'var(--glass-card-padding, var(--card-padding))',
+    overflow: 'hidden',
+    position: 'relative',
+    cursor: onClick ? 'pointer' : 'default',
+    ...style,
+  };
+
+  /* 非默认内边距变体：写入自定义属性，保证单一 padding 来源 */
+  if (padding !== 'md') {
+    Object.assign(cardStyle, { '--glass-card-padding': PADDING_MAP[padding] });
+  }
+
   return (
     <motion.div
+      className={className}
       onClick={onClick}
-      style={{
-        background: 'var(--glass-bg)',
-        backdropFilter: 'var(--glass-blur)',
-        WebkitBackdropFilter: 'var(--glass-blur)',
-        border: '1px solid var(--glass-border)',
-        borderRadius: 'var(--radius-premium)',
-        boxShadow: 'var(--glass-shadow)',
-        padding: '24px',
-        overflow: 'hidden',
-        position: 'relative',
-        cursor: onClick ? 'pointer' : 'default',
-      }}
-      whileHover={onClick || hoverGlow ? {
-        borderColor: 'var(--border-active)',
-        boxShadow: 'var(--accent-glow)',
-      } : undefined}
-      transition={{ duration: 0.2 }}
+      style={cardStyle}
+      whileHover={
+        interactive
+          ? {
+              y: -2,
+              background: 'var(--glass-bg-hover)',
+              borderColor: 'var(--border-active)',
+              boxShadow: 'var(--glass-shadow-hover)',
+            }
+          : undefined
+      }
+      transition={{ duration: 0.25, ease: 'easeOut' }}
     >
       {/* 顶部微妙的发光线条装饰 (适配亮暗) */}
       <div

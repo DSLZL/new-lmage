@@ -98,7 +98,16 @@ pub async fn init_db(db: &D1Database) -> Result<()> {
         );"
     ).run().await?;
 
-    // 6. 温和迁移：老版本（JS 时代）的 D1 表可能缺新列，
+    // 6. 游客上传限速计数表（key = 'anonymous' 或用户 id）
+    db.prepare(
+        "CREATE TABLE IF NOT EXISTS upload_limits (
+            key TEXT PRIMARY KEY,
+            window_start INTEGER NOT NULL,
+            count INTEGER NOT NULL
+        );"
+    ).run().await?;
+
+    // 7. 温和迁移：老版本（JS 时代）的 D1 表可能缺新列，
     // CREATE TABLE IF NOT EXISTS 不会重建已存在的表，必须逐列补齐
     migrate(db).await?;
 

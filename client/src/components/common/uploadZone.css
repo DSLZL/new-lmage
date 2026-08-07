@@ -1,4 +1,5 @@
-/* uploadZone.css — 极致化拖拽上传区（呼吸虚线 / 拖入发光 / 内联进度） */
+﻿/* uploadZone.css — 极致化拖拽上传区
+   呼吸虚线 / 拖入发光 / 图标悬浮 / 触控反馈 / 限速横幅 / 内联进度 */
 
 .upload-zone {
   position: relative;
@@ -9,13 +10,19 @@
   cursor: pointer;
   overflow: hidden;
   box-shadow: var(--glass-shadow);
+  -webkit-tap-highlight-color: transparent;
+  /* 缩放由 framer-motion 驱动（拖入 1.012 / 按压 0.985），避免双 transform 打架 */
   transition:
-    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
     background-color 0.35s ease,
     box-shadow 0.35s ease;
 }
 
-/* 呼吸虚线边框（独立伪元素，避免动画压制 hover 态） */
+.upload-zone:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 呼吸虚线边框（独立伪元素，避免动画压制状态态） */
 .upload-zone::before {
   content: '';
   position: absolute;
@@ -35,11 +42,9 @@
   border-color: var(--accent-light);
 }
 
-/* 拖入：缩放 + 发光 + 实线描边 */
+/* 拖入：发光 + 实线描边（缩放由 framer 完成） */
 .upload-zone.drag-active {
-  transform: scale(1.012);
   background: var(--bg-surface-hover);
-  box-shadow: 0 16px 48px var(--g-zone-glow-strong);
 }
 
 .upload-zone.drag-active::before {
@@ -59,32 +64,23 @@
   opacity: 0.9;
 }
 
+/* 限速窗口：警示描边 + 图标转警示色 */
+.upload-zone.rate-limited::before {
+  border-color: color-mix(in srgb, var(--warning) 55%, transparent);
+  animation: none;
+  opacity: 1;
+}
+
+.upload-zone.rate-limited .upload-icon {
+  color: var(--warning);
+}
+
 @keyframes zone-breathe {
   0%, 100% { border-color: var(--border-subtle); opacity: 0.75; }
   50% { border-color: var(--border-active); opacity: 1; }
 }
 
-/* Header 联动高亮闪环 */
-.zone-flash-ring {
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  border: 2px solid var(--accent);
-  box-shadow:
-    0 0 0 4px var(--g-flash-ring),
-    0 0 44px var(--accent-glow-strong);
-  pointer-events: none;
-  z-index: 3;
-  animation: zone-flash 1.7s ease-out forwards;
-}
-
-@keyframes zone-flash {
-  0% { opacity: 0; }
-  12% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* 图标（悬浮动画由 framer-motion 驱动外层，hover 放大在此） */
+/* 图标（悬浮动画由 framer-motion 驱动外层，hover/拖入放大在此） */
 .upload-icon-wrap {
   width: 72px;
   height: 72px;
@@ -93,13 +89,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--g-zone-glow);
+  background: var(--accent-soft);
   transition: background-color 0.3s ease;
 }
 
 .upload-zone:hover .upload-icon-wrap,
 .upload-zone.drag-active .upload-icon-wrap {
-  background: var(--g-zone-glow-strong);
+  background: var(--accent-soft);
 }
 
 .upload-icon {
@@ -109,6 +105,10 @@
 
 .upload-zone:hover .upload-icon {
   transform: scale(1.12);
+}
+
+.upload-zone.drag-active .upload-icon {
+  transform: scale(1.18);
 }
 
 .upload-title {
@@ -144,7 +144,28 @@
   border: 1px solid var(--border-subtle);
 }
 
-/* 上传中内联进度 */
+/* 限速横幅（秒级倒计时 + 拦截抖动） */
+.upload-limit-wrap {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.upload-limit-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-round);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: color-mix(in srgb, var(--warning) 35%, var(--text-dark));
+  background: color-mix(in srgb, var(--warning) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 38%, transparent);
+}
+
+/* 上传中内联进度：渐变条 + 流光扫过 */
 .upload-progress {
   max-width: 420px;
   margin: 18px auto 0;
@@ -158,10 +179,29 @@
 }
 
 .upload-progress-bar {
+  position: relative;
   height: 100%;
   border-radius: var(--radius-round);
   background: var(--accent-gradient);
-  box-shadow: 0 0 12px var(--g-zone-glow-strong);
+  overflow: hidden;
+}
+
+.upload-progress-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 75%
+  );
+  transform: translateX(-100%);
+  animation: zone-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes zone-shimmer {
+  to { transform: translateX(100%); }
 }
 
 .upload-progress-meta {
@@ -172,6 +212,12 @@
   color: var(--text-muted);
 }
 
+.upload-percent {
+  color: var(--accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .upload-done-hint {
   display: flex;
   align-items: center;
@@ -180,4 +226,56 @@
   margin-top: 12px;
   font-size: 12px;
   color: var(--success);
+}
+
+/* 触摸屏：hover 粘滞回退为按压反馈（拖入缩放在移动端无 hover，用 :active 替代） */
+@media (hover: none) {
+  .upload-zone:hover {
+    background: var(--bg-surface);
+  }
+
+  .upload-zone:hover .upload-icon-wrap {
+    background: var(--accent-soft);
+  }
+
+  .upload-zone:active {
+    background: var(--bg-surface-hover);
+  }
+}
+
+/* 移动端：高度压缩至约 140px（覆盖图库页 .g-upload-wrap 的 768px 压缩规则——
+   该规则选择器特异性更高且加载更晚，故此处需 !important 收敛） */
+@media (max-width: 640px) {
+  .upload-zone {
+    padding: 16px 14px 12px !important;
+    min-height: 140px;
+    border-radius: 14px;
+  }
+
+  .upload-icon-wrap {
+    width: 48px !important;
+    height: 48px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .upload-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .upload-title {
+    font-size: 15px;
+  }
+
+  .upload-desc {
+    font-size: 11px;
+  }
+
+  .upload-chips {
+    display: none;
+  }
+
+  .upload-limit-wrap {
+    margin-top: 10px;
+  }
 }

@@ -90,7 +90,6 @@
 .mtb-icon-btn:hover {
   color: var(--accent);
   background: var(--nav-pill-hover);
-  box-shadow: var(--accent-glow);
 }
 
 /* 主题切换图标旋转动效容器 */
@@ -115,7 +114,6 @@
 .mtb-login:hover {
   color: var(--accent);
   background: var(--nav-pill-hover);
-  box-shadow: var(--accent-glow);
 }
 
 /* ==================== 账户区（头像 + 下拉菜单） ==================== */
@@ -138,7 +136,6 @@
 
 .mtb-avatar:active,
 .mtb-avatar:hover {
-  box-shadow: var(--accent-glow);
   transform: scale(1.05);
 }
 

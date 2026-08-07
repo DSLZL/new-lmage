@@ -1,12 +1,9 @@
-/* gallery.css — 图库首页页面骨架（Token / 页眉 / 工具栏 / 搜索 / 批量操作） */
+﻿/* gallery.css — 图库首页页面骨架（Token / 页眉 / 工具栏 / 搜索 / 批量操作） */
 
 /* ============ 图库专属 Token（亮暗自动） ============ */
 :root {
-  --g-zone-glow: rgba(8, 145, 178, 0.16);
-  --g-zone-glow-strong: rgba(8, 145, 178, 0.32);
   --g-danger-soft: rgba(239, 68, 68, 0.1);
   --g-danger-border: rgba(239, 68, 68, 0.3);
-  --g-danger-glow: rgba(239, 68, 68, 0.18);
   --g-overlay: rgba(15, 23, 42, 0.45);
   --g-flash-ring: rgba(8, 145, 178, 0.5);
   --g-skeleton-bg: rgba(15, 23, 42, 0.05);
@@ -19,11 +16,8 @@
 }
 
 :root[data-theme='dark'] {
-    --g-zone-glow: rgba(34, 211, 238, 0.18);
-    --g-zone-glow-strong: rgba(34, 211, 238, 0.4);
     --g-danger-soft: rgba(248, 113, 113, 0.12);
     --g-danger-border: rgba(248, 113, 113, 0.34);
-    --g-danger-glow: rgba(248, 113, 113, 0.22);
     --g-overlay: rgba(2, 6, 23, 0.62);
     --g-flash-ring: rgba(34, 211, 238, 0.55);
     --g-skeleton-bg: rgba(255, 255, 255, 0.05);
@@ -80,19 +74,18 @@
 
 .search-input {
   width: 100%;
-  height: 44px;
+  height: 36px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-round);
-  padding: 0 40px 0 42px;
-  font-size: 14px;
+  padding: 0 32px 0 34px;
+  font-size: 13px;
   box-shadow: var(--glass-shadow);
   transition: var(--transition-fast);
 }
 
 .search-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--g-zone-glow);
 }
 
 .search-icon {
@@ -125,37 +118,42 @@
   color: var(--text-main);
 }
 
+/* 操作区：与搜索框同行，绝不换行（放不下时由工具栏横向滚动兜底） */
 .batch-actions {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
-.batch-bar {
+.gallery-batch-bar {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .select-count {
   font-size: 13px;
   color: var(--text-muted);
-  background: var(--g-zone-glow);
+  background: var(--accent-soft);
   border: 1px solid var(--border-active);
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: var(--radius-round);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .action-btn {
-  height: 44px; /* 与搜索输入框等高，保证工具栏一行齐平 */
-  padding: 0 16px;
+  height: 36px; /* 与搜索输入框等高，保证工具栏一行齐平 */
+  padding: 0 12px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-round);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -178,7 +176,6 @@
 
 .action-btn.danger-btn:hover {
   border-color: var(--error);
-  box-shadow: 0 6px 20px var(--g-danger-glow);
 }
 
 /* 计数行 */
@@ -192,4 +189,167 @@
   font-style: normal;
   color: var(--accent);
   font-weight: 600;
+}
+
+/* ============ 筛选 chips（渐变 active + 滑动胶囊） ============ */
+
+.g-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 2px;
+  margin: -4px -2px 0;
+}
+
+.g-filter-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.g-filter-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-round);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: var(--glass-shadow);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.g-filter-chip:hover {
+  color: var(--text-main);
+  border-color: var(--accent);
+}
+
+.g-filter-chip.active {
+  color: #fff;
+  border-color: transparent;
+}
+
+.g-filter-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--accent-gradient);
+}
+
+.g-filter-chip-inner {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ============ 骨架屏打磨（入场淡入 + 圆角统一） ============ */
+
+.skeleton-card {
+  animation: g-skeleton-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes g-skeleton-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============ 移动端极致（小屏压缩 / 工具栏一行 / 横向滚动兜底） ============ */
+
+@media (max-width: 768px) {
+  /* 工具栏：搜索弹性伸缩 + 按钮同行，绝不换行；放不下时横向滚动兜底 */
+  .gallery-toolbar {
+    gap: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .gallery-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .search-box {
+    max-width: none;
+  }
+
+  .batch-actions {
+    margin-left: auto;
+  }
+
+  /* 上传区压缩高度（仅作用于图库页，不干扰全局 uploadZone.css） */
+  .g-upload-wrap .upload-zone {
+    padding: 16px 16px 22px;
+  }
+
+  .g-upload-wrap .upload-icon-wrap {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 10px;
+  }
+
+  .g-upload-wrap .upload-title {
+    font-size: 15.5px;
+  }
+
+  .g-upload-wrap .upload-desc {
+    font-size: 12px;
+  }
+
+  .g-upload-wrap .upload-chips {
+    margin-top: 12px;
+    gap: 8px;
+  }
+
+  .g-upload-wrap .upload-progress {
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* 超小屏：按钮更紧凑，保证搜索 + 刷新一行放下 */
+  .action-btn {
+    padding: 0 12px;
+    font-size: 12.5px;
+    gap: 5px;
+  }
+
+  .search-input {
+    font-size: 13px;
+    padding: 0 36px 0 38px;
+  }
+
+  .gallery-batch-bar {
+    gap: 8px;
+  }
+
+  .select-count {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}
+
+/* 动效降级：减少运动的用户关闭无限动画 */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+  }
 }

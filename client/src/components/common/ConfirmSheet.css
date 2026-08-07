@@ -1,0 +1,130 @@
+/* ============================================================
+   ConfirmSheet.css — 移动端底部确认弹层
+   依赖 tokens：--accent-* / --error / --bg-* / --text-* / --border-*
+   亮暗双模由 data-theme 驱动
+   ============================================================ */
+
+/* 组件局部 token（danger 红色系 / normal 青蓝系） */
+:root {
+  --confirm-danger-gradient: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  --confirm-danger-soft: rgba(239, 68, 68, 0.12);
+  --confirm-normal-soft: rgba(8, 145, 178, 0.12);
+}
+
+:root[data-theme='dark'] {
+  --confirm-danger-gradient: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+  --confirm-danger-soft: rgba(248, 113, 113, 0.16);
+  --confirm-normal-soft: rgba(34, 211, 238, 0.16);
+}
+
+.confirm-sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 10px;
+}
+
+/* ---------- 图标圆底 ---------- */
+.confirm-sheet-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin-bottom: 16px;
+}
+
+.confirm-sheet-icon-danger {
+  background: var(--confirm-danger-soft);
+  color: var(--error);
+}
+
+.confirm-sheet-icon-normal {
+  background: var(--confirm-normal-soft);
+  color: var(--accent);
+}
+
+/* ---------- 标题与说明 ---------- */
+.confirm-sheet-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text-main);
+}
+
+.confirm-sheet-desc {
+  margin-top: 8px;
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--text-muted);
+  max-width: 320px;
+}
+
+/* ---------- 按钮组 ---------- */
+.confirm-sheet-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  margin-top: 24px;
+}
+
+.confirm-sheet-btn {
+  height: 46px;
+  border-radius: var(--radius-round);
+  font-size: 14.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.confirm-sheet-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.confirm-sheet-btn-cancel {
+  background: var(--bg-surface-hover);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-dark);
+}
+
+.confirm-sheet-btn-cancel:active {
+  background: var(--nav-pill-hover);
+}
+
+.confirm-sheet-btn-confirm {
+  background: var(--accent-gradient);
+  color: #ffffff;
+}
+
+.confirm-sheet-btn-danger {
+  background: var(--confirm-danger-gradient);
+  color: #ffffff;
+}
+
+.confirm-sheet-btn-confirm:active,
+.confirm-sheet-btn-danger:active {
+  transform: scale(0.97);
+}
+
+/* ---------- 加载圈 ---------- */
+.confirm-sheet-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  animation: confirm-sheet-spin 0.7s linear infinite;
+}
+
+@keyframes confirm-sheet-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

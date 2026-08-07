@@ -117,6 +117,10 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ image, onClose, on
                 <ExternalLink size={13} strokeWidth={1.5} />
                 新窗口打开
               </a>
+              {/* 移动端悬浮关闭（全屏态下快速退出，桌面端隐藏） */}
+              <button className="lightbox-float-close" onClick={onClose} aria-label="关闭预览">
+                <X size={19} strokeWidth={1.5} />
+              </button>
             </div>
 
             {/* 右：属性与外链 */}
@@ -127,7 +131,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ image, onClose, on
                   <span className="lightbox-mime">{image.mime_type}</span>
                 </div>
                 <button className="lightbox-close" onClick={onClose} aria-label="关闭预览">
-                  <X size={18} strokeWidth={1.5} />
+                  <X size={14} strokeWidth={1.5} />
                 </button>
               </div>
 

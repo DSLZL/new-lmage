@@ -1,0 +1,101 @@
+/* ============================================================
+   MobileSheet.css — 移动端底部滑出动作弹层
+   依赖 tokens：--glass-* / --bg-* / --text-* / --border-* / --accent-*
+   亮暗双模由 data-theme 驱动
+   ============================================================ */
+
+/* 组件局部 token */
+:root {
+  --sheet-overlay-bg: rgba(2, 6, 23, 0.45);
+  --sheet-handle-bg: rgba(100, 116, 139, 0.38);
+  --sheet-shadow: 0 -10px 44px rgba(2, 6, 23, 0.18);
+  --sheet-radius: 26px;
+}
+
+:root[data-theme='dark'] {
+  --sheet-overlay-bg: rgba(0, 0, 0, 0.62);
+  --sheet-handle-bg: rgba(148, 163, 184, 0.3);
+  --sheet-shadow: 0 -12px 48px rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- 遮罩 ---------- */
+.mobile-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--sheet-overlay-bg);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- 面板：毛玻璃 + 顶部大圆角 ---------- */
+.mobile-sheet {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid var(--glass-border);
+  border-bottom: none;
+  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+  box-shadow: var(--sheet-shadow);
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+/* ---------- 拖拽手柄区（含标题，下滑关闭的手势起点） ---------- */
+.mobile-sheet-grab {
+  flex-shrink: 0;
+  padding: 10px 20px 8px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mobile-sheet-handle {
+  width: 40px;
+  height: 4px;
+  margin: 0 auto;
+  border-radius: var(--radius-round);
+  background: var(--sheet-handle-bg);
+  transition: var(--transition-fast);
+}
+
+.mobile-sheet-grab:active .mobile-sheet-handle {
+  background: var(--accent);
+  transform: scaleX(1.15);
+}
+
+.mobile-sheet-title {
+  padding: 12px 0 2px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-main);
+}
+
+/* ---------- 内容区：可滚动 + 底部安全区 ---------- */
+.mobile-sheet-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 8px 20px calc(24px + env(safe-area-inset-bottom));
+}
+
+/* 桌面端面板居中悬浮，限制高度 */
+@media (min-width: 769px) {
+  .mobile-sheet {
+    max-width: 440px;
+    margin-bottom: 24px;
+    border-radius: var(--sheet-radius);
+    border-bottom: 1px solid var(--glass-border);
+  }
+}

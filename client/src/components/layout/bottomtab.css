@@ -1,157 +1,117 @@
 /* ============================================================
-   移动端底部 Tab 导航样式（亮暗双模自适应）
-   依赖 tokens：--glass-* / --nav-* / --accent* / --text-* / --border-* / --divider-subtle
+   移动端底部 Tab 导航：灵动岛聚合式设计 (Dynamic Island)
    ============================================================ */
 
-/* ---------- layout 专用 token 附加块（BottomTab 使用） ---------- */
-:root {
-  /* 底部悬浮胶囊高度 */
-  --bt-bar-height: 58px;
-  /* 悬浮胶囊阴影（四周柔光） */
-  --bt-bar-shadow: 0 12px 40px rgba(15, 23, 42, 0.16), 0 2px 10px rgba(15, 23, 42, 0.08);
-}
-
-:root[data-theme='dark'] {
-    --bt-bar-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 2px 12px rgba(0, 0, 0, 0.35);
-}
-
-/* ==================== 悬浮胶囊容器 ==================== */
+/* 1. 外层全宽占位容器（用于固定在底部，拦截点击但本身透明） */
 .mobile-bottom-tab {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  width: calc(100% - 28px);
-  max-width: 480px;
-  height: var(--bt-bar-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 100;
+  pointer-events: none; /* 外层不拦截点击，防误触页面底部内容 */
+}
+
+/* 2. 灵动岛胶囊实体容器 */
+.bt-container {
+  pointer-events: auto; /* 恢复点击拦截 */
+  position: relative;
   display: flex;
   align-items: center;
+  gap: 4px;
+  height: 56px;
+  padding: 0 8px;
+  border-radius: 28px;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
-  border-radius: 22px;
-  box-shadow: var(--bt-bar-shadow);
-  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 1px rgba(255, 255, 255, 1);
 }
 
-/* ==================== 左右 tab 分组（对称均分） ==================== */
-.bt-group {
-  flex: 1;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  min-width: 0;
+[data-theme='dark'] .bt-container {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
 }
 
+/* 3. 导航单项 */
 .bt-item {
   position: relative;
-  flex: 1;
-  min-width: 0;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
-  /* 图标中心与中央 FAB / 分隔线中心对齐（底栏中线）：
-     内容(24+2+10=36px)在可用高度(58-12=46px)内居中后，
-     图标中心恰好 = 12 + 5 + 12 = 29px = 栏中线 */
-  padding-top: 12px;
+  width: 64px;
+  height: 48px;
+  border-radius: 20px;
   color: var(--text-muted);
   cursor: pointer;
-  transition: color var(--transition-fast);
+  transition: transform var(--transition-fast);
 }
 
-.bt-item:hover {
-  color: var(--text-dark);
+/* 点按物理缩放 */
+.bt-item:active {
+  transform: scale(0.9);
 }
 
-/* 组内细分隔线 */
-.bt-item + .bt-item::before {
-  content: '';
-  width: 1px;
-  height: 16px;
-  background: var(--divider-subtle);
-  margin: 0 2px;
+/* 4. 动画指示器 */
+/* (a) 图标区高亮发光效果 (替代实体背景) */
+/* 仅利用 active 状态让图标稍微亮起即可，保持 iOS 纯净感 */
+
+/* (b) 底部条状/圆点游标 */
+.bt-dot-indicator {
+  position: absolute;
+  bottom: -2px;
+  width: 12px;
+  height: 3px;
+  border-radius: 99px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-soft);
+  z-index: 2;
 }
 
+/* 5. 图标与文字 */
 .bt-item-icon-wrap {
   position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 24px;
-  border-radius: var(--radius-round);
+  color: inherit;
+  transition: color 0.3s;
 }
 
-/* framer-motion layoutId 滑动胶囊（active 背景） */
-.bt-indicator {
-  position: absolute;
-  inset: 0;
-  background: var(--nav-indicator-bg);
-  border-radius: var(--radius-round);
+.bt-item:hover .bt-item-icon-wrap {
+  color: var(--text-dark);
 }
 
-.bt-item-icon {
-  position: relative;
-  z-index: 1;
-  transition: var(--transition-fast);
+.bt-item.active .bt-item-icon-wrap {
+  color: var(--accent);
+  filter: drop-shadow(0 2px 4px var(--accent-soft));
 }
 
 .bt-item-label {
   position: relative;
   z-index: 1;
-  font-size: 10px;
-  line-height: 1; /* 固定行高，保证图标中心对齐计算的确定性 */
-  font-weight: 500;
+  font-size: 9.5px;
+  font-weight: 800; /* ExtraBold */
   letter-spacing: 0.05em;
-  transition: var(--transition-fast);
+  color: inherit;
+  transition: color 0.3s;
 }
 
-.bt-item.active {
+.bt-item:hover .bt-item-label {
+  color: var(--text-dark);
+}
+
+.bt-item.active .bt-item-label {
   color: var(--accent);
 }
 
-.bt-item.active .bt-item-icon {
-  filter: drop-shadow(0 0 5px var(--accent-glow-strong));
-}
-
-/* ==================== 中央凸起上传 FAB（精致小巧，无光圈） ==================== */
-.bt-fab-zone {
-  width: 64px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.bt-fab {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--fab-bg);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  box-shadow: var(--fab-shadow);
-  border: 2px solid var(--bg-surface);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.bt-fab:hover {
-  transform: scale(1.04);
-  box-shadow: var(--fab-shadow), 0 0 0 4px var(--nav-indicator-bg);
-}
-
-.bt-fab:active {
-  transform: scale(0.92);
-}
-
-/* ==================== 响应式显示 / 隐藏 ==================== */
+/* ==================== 响应式隐藏 ==================== */
 @media (min-width: 769px) {
   .mobile-bottom-tab {
     display: none;
@@ -159,11 +119,7 @@
 }
 
 @media (max-width: 768px) {
-  /* 顶部导航悬浮胶囊留出呼吸空间 */
-  .app-main-content {
-    padding-top: 12px;
-  }
-  /* 为悬浮底栏预留内容底部空间 */
+  /* 为悬浮底栏预留内容底部空间 (避免页面最下面被挡住) */
   .app-main-content {
     padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
   }

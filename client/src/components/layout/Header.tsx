@@ -94,13 +94,17 @@ export const Header: React.FC = () => {
             <div className="nav-group-items">
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const active = location.pathname === item.path;
+                // 前缀匹配：进入 /albums/:albumid、/tags/:tagid 等子页面时对应导航保持高亮
+                const active =
+                  location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+                const isProfile = item.id === 'profile';
                 return (
                   <button
                     key={item.id}
                     type="button"
-                    className={`nav-pill ${active ? 'active' : ''}`}
+                    className={`nav-pill ${active ? 'active' : ''} ${isProfile ? 'nav-pill-user' : ''}`}
                     onClick={() => navigate(item.path)}
+                    aria-current={active ? 'page' : undefined}
                   >
                     {active && (
                       <motion.span
@@ -110,7 +114,7 @@ export const Header: React.FC = () => {
                       />
                     )}
                     <Icon
-                      size={16}
+                      size={14}
                       strokeWidth={1.5}
                       fill={active ? 'currentColor' : 'none'}
                       className="nav-pill-icon"
@@ -135,7 +139,7 @@ export const Header: React.FC = () => {
           onClick={requestSearch}
           whileTap={{ scale: 0.88 }}
         >
-          <Search size={18} strokeWidth={1.5} />
+          <Search size={14} strokeWidth={1.5} />
         </motion.button>
 
         {/* 全局亮暗主题切换 */}
@@ -157,9 +161,9 @@ export const Header: React.FC = () => {
               transition={{ duration: 0.22, ease: 'easeOut' }}
             >
               {theme === 'dark' ? (
-                <Sun size={18} strokeWidth={1.5} />
+                <Sun size={14} strokeWidth={1.5} />
               ) : (
-                <Moon size={18} strokeWidth={1.5} />
+                <Moon size={14} strokeWidth={1.5} />
               )}
             </motion.span>
           </AnimatePresence>
@@ -207,7 +211,7 @@ export const Header: React.FC = () => {
                     role="menuitem"
                     onClick={() => handlePending('个人资料')}
                   >
-                    <Settings size={16} strokeWidth={1.5} />
+                    <Settings size={14} strokeWidth={1.5} />
                     <span>个人资料</span>
                   </button>
                   <button
@@ -216,12 +220,12 @@ export const Header: React.FC = () => {
                     role="menuitem"
                     onClick={() => handlePending('修改密码')}
                   >
-                    <KeyRound size={16} strokeWidth={1.5} />
+                    <KeyRound size={14} strokeWidth={1.5} />
                     <span>修改密码</span>
                   </button>
                   <div className="dropdown-divider" />
                   <button type="button" className="dropdown-item danger" role="menuitem" onClick={handleLogout}>
-                    <LogOut size={16} strokeWidth={1.5} />
+                    <LogOut size={14} strokeWidth={1.5} />
                     <span>退出登录</span>
                   </button>
                 </motion.div>
@@ -229,9 +233,10 @@ export const Header: React.FC = () => {
             </AnimatePresence>
           </div>
         ) : (
-          /* 游客登录圆钮（icon-only） */
-          <Link to="/login" className="login-cta" aria-label="登录 / 注册" data-tip="登录 / 注册">
-            <LogIn size={18} strokeWidth={1.5} />
+          /* 游客登录圆角胶囊 */
+          <Link to="/login" className="login-cta-btn" aria-label="立即加入" data-tip="登录 / 注册">
+            <span className="login-cta-text">立即加入</span>
+            <LogIn size={14} strokeWidth={2} />
           </Link>
         )}
       </div>

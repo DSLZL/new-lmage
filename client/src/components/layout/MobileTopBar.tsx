@@ -102,7 +102,7 @@ export const MobileTopBar: React.FC = () => {
           onClick={requestSearch}
           whileTap={{ scale: 0.88 }}
         >
-          <Search size={18} strokeWidth={1.5} />
+          <Search size={14} strokeWidth={1.5} />
         </motion.button>
 
         {/* 全局亮暗主题切换 */}
@@ -124,9 +124,9 @@ export const MobileTopBar: React.FC = () => {
               transition={{ duration: 0.22, ease: 'easeOut' }}
             >
               {theme === 'dark' ? (
-                <Sun size={18} strokeWidth={1.5} />
+                <Sun size={14} strokeWidth={1.5} />
               ) : (
-                <Moon size={18} strokeWidth={1.5} />
+                <Moon size={14} strokeWidth={1.5} />
               )}
             </motion.span>
           </AnimatePresence>
@@ -192,7 +192,7 @@ export const MobileTopBar: React.FC = () => {
             onClick={() => navigate('/login')}
             whileTap={{ scale: 0.88 }}
           >
-            <LogIn size={18} strokeWidth={1.5} />
+            <LogIn size={14} strokeWidth={1.5} />
           </motion.button>
         )}
       </div>

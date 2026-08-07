@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
 }
 
 .lightbox-card {
@@ -27,10 +27,66 @@
 }
 
 @media (max-width: 768px) {
+  /* 移动端全屏化：整屏弹层，图片 contain 撑满上半区，信息区紧凑滚动 */
+  .lightbox-overlay {
+    padding: 0;
+  }
+
   .lightbox-card {
     grid-template-columns: 1fr;
-    max-height: 92vh;
-    overflow-y: auto;
+    grid-template-rows: minmax(0, 46vh) minmax(0, 1fr);
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+    overflow: hidden;
+  }
+
+  .lightbox-preview {
+    min-height: 0;
+    padding: 10px;
+  }
+
+  .lightbox-preview-img {
+    max-height: 100%;
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  /* 图片右上角悬浮关闭（信息区在屏幕下半区，不遮挡时仍可一键退出） */
+  .lightbox-float-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: rgba(2, 6, 23, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    transition: var(--transition-fast);
+  }
+
+  .lightbox-float-close:active {
+    transform: scale(0.9);
+  }
+
+  .lightbox-open-link {
+    top: 10px;
+    left: 10px;
+    height: 28px;
+    font-size: 11px;
+    padding: 0 10px;
   }
 }
 
@@ -49,7 +105,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 40%, var(--g-zone-glow), transparent 70%);
+  background: radial-gradient(circle at 50% 40%, var(--accent-soft), transparent 70%);
   pointer-events: none;
 }
 
@@ -86,6 +142,11 @@
   border-color: var(--accent);
 }
 
+/* 移动端悬浮关闭按钮：桌面端默认隐藏，小屏全屏态显示 */
+.lightbox-float-close {
+  display: none;
+}
+
 .lightbox-info {
   padding: 28px;
   display: flex;
@@ -99,6 +160,30 @@
   .lightbox-info {
     border-left: none;
     border-top: 1px solid var(--border-subtle);
+    padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
+    gap: 14px;
+  }
+
+  .lightbox-title {
+    font-size: 14px;
+  }
+
+  .lightbox-stats {
+    gap: 8px;
+  }
+
+  .lightbox-stat {
+    padding: 8px 10px;
+    font-size: 11.5px;
+  }
+
+  .lightbox-links {
+    gap: 12px;
+  }
+
+  .lightbox-delete {
+    height: 40px;
+    font-size: 12.5px;
   }
 }
 
@@ -274,6 +359,5 @@
 
 .lightbox-delete:hover {
   border-color: var(--error);
-  box-shadow: 0 6px 20px var(--g-danger-glow);
   transform: translateY(-1px);
 }

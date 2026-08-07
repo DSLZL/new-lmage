@@ -1,4 +1,5 @@
 @import './variables.css';
+@import './animations.css';
 
 /* 1. 极致全局重置与宋体排版 */
 * {
@@ -7,14 +8,25 @@
   padding: 0;
 }
 
+html {
+  /* 防止 iOS 在横竖屏切换时自动放大字体 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* 触控优化：禁止双击缩放，保留单指滚动 */
+  touch-action: manipulation;
+}
+
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
   /* 极致中文宋体堆栈，赋予绝佳人文质感 */
-  font-family: 'Noto Serif SC', 'SimSun', 'Songti SC', 'STSong', serif;
+  font-family: var(--font-serif);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* 移动端：去除点击高亮灰块 */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   transition: background-color 0.4s ease, color 0.4s ease;
 }
 
@@ -27,29 +39,18 @@ body {
   height: 100vh;
   z-index: -2;
   /* 默认为浅色的黑色圆点极细网格 */
-  background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-image: var(--svg-noise), var(--svg-topo-light);
   background-size: 24px 24px;
 }
 
 [data-theme='dark'] .app-bg-grid {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-image: var(--svg-noise), var(--svg-topo-dark);
 }
 
 /* 呼吸中心渐变灯光 (亮模式稍微柔和) */
-.app-bg-glow {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -1;
-  background: radial-gradient(circle 800px at 50% -200px, rgba(8, 145, 178, 0.08), transparent 80%);
-  pointer-events: none;
-}
 
-[data-theme='dark'] .app-bg-glow {
-    background: radial-gradient(circle 800px at 50% -200px, rgba(34, 211, 238, 0.12), transparent 80%);
-}
+
+[data-theme='dark'] 
 
 /* 3. 极细高级滚动条 */
 ::-webkit-scrollbar {
@@ -90,4 +91,45 @@ button, input, select, textarea {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* 5. 移动端细节（≤768px，移动端优先级最高） */
+@media (max-width: 768px) {
+  /* 隐藏滚动条但保留滚动能力 */
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  * {
+    scrollbar-width: none;
+  }
+
+  /* 输入框字号 ≥16px，防止 iOS 聚焦自动缩放页面 */
+  input,
+  select,
+  textarea {
+    font-size: var(--input-font-size) !important;
+  }
+}
+
+
+/* Global Button and Card Micro-interactions */
+.btn, .icon-btn, button, .nav-pill {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.btn:active, .icon-btn:active, button:active, .card:active {
+  transform: scale(0.96) !important;
+}
+.btn {
+  min-height: 36px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 12px;
+}
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
 }
