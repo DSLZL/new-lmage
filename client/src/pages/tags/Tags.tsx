@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { api } from '../../services/api';
 import type { Tag } from '../../services/api';
 import { Loader } from '../../components/common/Loader';
 import { EmptyState } from '../../components/common/EmptyState';
-import { Check, Palette, Plus, Tag as TagIcon, X } from 'lucide-react';
+import { MobileSheet } from '../../components/common/MobileSheet';
+import { FadeInUp } from '../../components/common/FadeInUp';
+import { Check, Palette, Plus, Tag as TagIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import '../../components/common/modals.css';
 import './tags.css';
@@ -38,33 +40,6 @@ const hexToRgba = (hex: string, alpha: number): string => {
 const pageMotion = {
   initial: { opacity: 0, y: 14 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.36, ease: 'easeOut' as const } },
-};
-
-const gridContainer = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
-};
-
-const gridItem = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.32, ease: 'easeOut' as const } },
-};
-
-const overlayMotion = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-};
-
-const modalCardMotion = {
-  initial: { opacity: 0, y: 36, scale: 0.94 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { type: 'spring' as const, stiffness: 380, damping: 30 },
-  },
-  exit: { opacity: 0, y: 18, scale: 0.96, transition: { duration: 0.16 } },
 };
 
 /* ---------- 页面主组件 ---------- */
@@ -158,104 +133,87 @@ export const Tags: React.FC = () => {
           onAction={() => setShowCreate(true)}
         />
       ) : (
-        <motion.div
-          className="tag-cloud"
-          variants={gridContainer}
-          initial="hidden"
-          animate="visible"
-        >
-          {tags.map((tag) => (
-            <motion.button
-              key={tag.id}
-              className={`tag-chip ${tag.color ? '' : 'tag-chip-gradient'}`}
-              style={chipStyle(tag.color)}
-              variants={gridItem}
-              whileHover={{ y: -4, scale: 1.05 }}
-              whileTap={{ scale: 0.94 }}
-              onClick={() => navigate(`/tags/${tag.id}`)}
-            >
-              <TagIcon size={14} strokeWidth={1.5} className="tag-chip-icon" />
-              {tag.name}
-            </motion.button>
+        <div className="tag-cloud">
+          {tags.map((tag, i) => (
+            <FadeInUp key={tag.id} delay={Math.min(i * 0.04, 0.4)}>
+              <motion.button
+                className={`tag-chip ${tag.color ? '' : 'tag-chip-gradient'}`}
+                style={chipStyle(tag.color)}
+                whileHover={{ y: -4, scale: 1.05 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={() => navigate(`/tags/${tag.id}`)}
+              >
+                <TagIcon size={14} strokeWidth={1.5} className="tag-chip-icon" />
+                {tag.name}
+              </motion.button>
+            </FadeInUp>
           ))}
-        </motion.div>
+        </div>
       )}
 
-      {/* ===== 创建标签模态 ===== */}
-      <AnimatePresence>
-        {showCreate && (
-          <motion.div className="modal-overlay" {...overlayMotion} onClick={() => setShowCreate(false)}>
-            <motion.form
-              className="modal-card"
-              {...modalCardMotion}
-              onSubmit={handleCreateTag}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="modal-head">
-                <div>
-                  <h3 className="modal-title">创建新标签</h3>
-                  <p className="modal-subtitle">为标签挑选一个代表颜色，让分类一目了然</p>
-                </div>
-                <X size={14} strokeWidth={1.5} className="modal-close" onClick={() => setShowCreate(false)} />
-              </div>
+      {/* ===== 创建标签底部弹层（移动端），桌面自动居中 ===== */}
+      <MobileSheet
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        title="创建新标签"
+      >
+        <form className="tag-create-sheet" onSubmit={handleCreateTag}>
+          <div className="modal-field">
+            <label className="modal-label">标签名称</label>
+            <input
+              className="modal-input"
+              placeholder="例如：风景、壁纸、素材"
+              value={newTagName}
+              onChange={(e) => setNewTagName(e.target.value)}
+              maxLength={20}
+              autoFocus
+            />
+          </div>
 
-              <div className="modal-field">
-                <label className="modal-label">标签名称</label>
-                <input
-                  className="modal-input"
-                  placeholder="例如：风景、壁纸、素材"
-                  value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
-                  maxLength={20}
-                />
-              </div>
+          <div className="modal-field">
+            <label className="modal-label">代表颜色</label>
+            <div className="tag-swatch-row">
+              {PRESET_COLORS.map((color) => (
+                <motion.button
+                  key={color}
+                  type="button"
+                  className={`tag-swatch ${newTagColor === color ? 'active' : ''}`}
+                  style={{ backgroundColor: color }}
+                  onClick={() => setNewTagColor(color)}
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.9 }}
+                  aria-label={`选择颜色 ${color}`}
+                >
+                  {newTagColor === color && (
+                    <Check size={13} strokeWidth={1.5} style={{ color: 'var(--tag-swatch-check)' }} />
+                  )}
+                </motion.button>
+              ))}
+            </div>
+            <div className="tag-custom-color">
+              <Palette size={14} strokeWidth={1.5} className="tag-custom-icon" />
+              <input
+                type="color"
+                className="tag-color-input"
+                value={newTagColor}
+                onChange={(e) => setNewTagColor(e.target.value)}
+                aria-label="自定义颜色"
+              />
+              <span className="tag-color-hex">{newTagColor}</span>
+            </div>
+          </div>
 
-              <div className="modal-field">
-                <label className="modal-label">代表颜色</label>
-                <div className="tag-swatch-row">
-                  {PRESET_COLORS.map((color) => (
-                    <motion.button
-                      key={color}
-                      type="button"
-                      className={`tag-swatch ${newTagColor === color ? 'active' : ''}`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => setNewTagColor(color)}
-                      whileHover={{ scale: 1.15 }}
-                      whileTap={{ scale: 0.9 }}
-                      aria-label={`选择颜色 ${color}`}
-                    >
-                      {newTagColor === color && (
-                        <Check size={13} strokeWidth={1.5} style={{ color: 'var(--tag-swatch-check)' }} />
-                      )}
-                    </motion.button>
-                  ))}
-                </div>
-                <div className="tag-custom-color">
-                  <Palette size={14} strokeWidth={1.5} className="tag-custom-icon" />
-                  <input
-                    type="color"
-                    className="tag-color-input"
-                    value={newTagColor}
-                    onChange={(e) => setNewTagColor(e.target.value)}
-                    aria-label="自定义颜色"
-                  />
-                  <span className="tag-color-hex">{newTagColor}</span>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="modal-btn" onClick={() => setShowCreate(false)}>
-                  取消
-                </button>
-                <button type="submit" className="modal-btn modal-btn-primary" disabled={creating}>
-                  {creating && <span className="modal-spinner" />}
-                  确认创建
-                </button>
-              </div>
-            </motion.form>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          <div className="modal-footer">
+            <button type="button" className="modal-btn" onClick={() => setShowCreate(false)}>
+              取消
+            </button>
+            <button type="submit" className="modal-btn modal-btn-primary" disabled={creating}>
+              {creating && <span className="modal-spinner" />}
+              确认创建
+            </button>
+          </div>
+        </form>
+      </MobileSheet>
     </motion.div>
   );
 };

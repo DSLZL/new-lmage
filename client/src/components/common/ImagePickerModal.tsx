@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { api } from '../../services/api';
 import type { Image } from '../../services/api';
-import { Check, LoaderCircle, Search, X } from 'lucide-react';
+import { Check, LoaderCircle, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { MobileSheet } from './MobileSheet';
 import './modals.css';
 
 interface ImagePickerModalProps {
@@ -19,24 +20,7 @@ interface ImagePickerModalProps {
   onConfirm: (ids: string[]) => void;
 }
 
-const overlayMotion = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-};
-
-const cardMotion = {
-  initial: { opacity: 0, y: 36, scale: 0.94 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { type: 'spring' as const, stiffness: 360, damping: 30 },
-  },
-  exit: { opacity: 0, y: 18, scale: 0.96, transition: { duration: 0.16 } },
-};
-
-/** 图库图片选择器：供相册批量加图等场景复用 */
+/** 图库图片选择器：供相册批量加图等场景复用（移动端底部弹层，桌面自动居中） */
 export const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
   open,
   title,
@@ -85,97 +69,79 @@ export const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
   };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div className="modal-overlay" {...overlayMotion} onClick={onClose}>
-          <motion.div
-            className="modal-card modal-card-wide"
-            {...cardMotion}
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-          >
-            <div className="modal-head">
-              <div>
-                <h3 className="modal-title">{title}</h3>
-                {subtitle && <p className="modal-subtitle">{subtitle}</p>}
-              </div>
-              <X size={14} strokeWidth={1.5} className="modal-close" onClick={onClose} />
+    <MobileSheet open={open} onClose={onClose} title={title} maxHeight="86vh">
+      {subtitle && <p className="modal-subtitle picker-subtitle">{subtitle}</p>}
+
+      <div className="picker-search">
+        <Search size={14} strokeWidth={1.5} className="picker-search-icon" />
+        <input
+          className="modal-input"
+          placeholder="搜索图片名称..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
+      {loading ? (
+        <div className="picker-empty" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <LoaderCircle size={14} strokeWidth={1.5} style={{ animation: 'modal-spin 0.8s linear infinite' }} />
+          正在载入图库...
+        </div>
+      ) : (
+        <div className="picker-grid">
+          {available.length === 0 ? (
+            <div className="picker-empty">
+              {query ? '没有匹配的图片' : '图库中暂无可用图片，请先到图库上传'}
             </div>
-
-            <div className="picker-search">
-              <Search size={14} strokeWidth={1.5} className="picker-search-icon" />
-              <input
-                className="modal-input"
-                placeholder="搜索图片名称..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
-
-            {loading ? (
-              <div className="picker-empty" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-                <LoaderCircle size={14} strokeWidth={1.5} style={{ animation: 'modal-spin 0.8s linear infinite' }} />
-                正在载入图库...
-              </div>
-            ) : (
-              <div className="picker-grid">
-                {available.length === 0 ? (
-                  <div className="picker-empty">
-                    {query ? '没有匹配的图片' : '图库中暂无可用图片，请先到图库上传'}
-                  </div>
-                ) : (
-                  available.map((img) => (
-                    <motion.div
-                      key={img.id}
-                      className={`picker-item ${selected.includes(img.id) ? 'selected' : ''}`}
-                      onClick={() => toggle(img.id)}
-                      whileHover={{ y: -3 }}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.22 }}
-                    >
-                      <img src={api.getFileUrl(img.id, true)} alt={img.file_name} loading="lazy" />
-                      <span className="picker-check">
-                        {selected.includes(img.id) && <Check size={13} strokeWidth={1.5} />}
-                      </span>
-                      <span className="picker-name">{img.file_name}</span>
-                    </motion.div>
-                  ))
-                )}
-              </div>
-            )}
-
-            <div className="picker-bar">
-              <span>
-                已选 {selected.length} 张{available.length > 0 && `（共 ${available.length} 张可选）`}
-              </span>
-              {available.length > 0 && (
-                <button className="modal-btn" onClick={toggleAll} style={{ height: 34, padding: '0 14px', fontSize: 13 }}>
-                  {available.every((img) => selected.includes(img.id)) ? '取消全选' : '全选'}
-                </button>
-              )}
-            </div>
-
-            <div className="modal-footer">
-              <button className="modal-btn" onClick={onClose} disabled={submitting}>
-                取消
-              </button>
-              <button
-                className="modal-btn modal-btn-primary"
-                disabled={selected.length === 0 || submitting}
-                onClick={() => {
-                  onConfirm(selected);
-                  setSelected([]);
-                }}
+          ) : (
+            available.map((img) => (
+              <motion.div
+                key={img.id}
+                className={`picker-item ${selected.includes(img.id) ? 'selected' : ''}`}
+                onClick={() => toggle(img.id)}
+                whileHover={{ y: -3 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.22 }}
               >
-                {submitting && <span className="modal-spinner" />}
-                {confirmText}（{selected.length}）
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
+                <img src={api.getFileUrl(img.id, true)} alt={img.file_name} loading="lazy" />
+                <span className="picker-check">
+                  {selected.includes(img.id) && <Check size={13} strokeWidth={1.5} />}
+                </span>
+                <span className="picker-name">{img.file_name}</span>
+              </motion.div>
+            ))
+          )}
+        </div>
       )}
-    </AnimatePresence>
+
+      <div className="picker-bar">
+        <span>
+          已选 {selected.length} 张{available.length > 0 && `（共 ${available.length} 张可选）`}
+        </span>
+        {available.length > 0 && (
+          <button className="modal-btn" onClick={toggleAll} style={{ height: 34, padding: '0 14px', fontSize: 13 }}>
+            {available.every((img) => selected.includes(img.id)) ? '取消全选' : '全选'}
+          </button>
+        )}
+      </div>
+
+      <div className="modal-footer">
+        <button className="modal-btn" onClick={onClose} disabled={submitting}>
+          取消
+        </button>
+        <button
+          className="modal-btn modal-btn-primary"
+          disabled={selected.length === 0 || submitting}
+          onClick={() => {
+            onConfirm(selected);
+            setSelected([]);
+          }}
+        >
+          {submitting && <span className="modal-spinner" />}
+          {confirmText}（{selected.length}）
+        </button>
+      </div>
+    </MobileSheet>
   );
 };

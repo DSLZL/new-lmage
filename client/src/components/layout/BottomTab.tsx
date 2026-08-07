@@ -15,6 +15,9 @@ export const BottomTab: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // 登录页全屏沉浸，隐藏底栏
+  if (location.pathname === '/login') return null;
+
   const vibrate = (pattern: number | number[] = 15) => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(pattern);

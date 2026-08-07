@@ -12,57 +12,7 @@
   }
 }
 
-/* ==================== 1. 顶部毛玻璃返回栏 ==================== */
-.tag-detail-topbar {
-  position: sticky;
-  top: 64px; /* 移动端悬浮导航之下 */
-  z-index: 80;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius-premium);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-}
-
-@media (min-width: 769px) {
-  .tag-detail-topbar {
-    top: 96px; /* PC 悬浮导航之下 */
-    padding: 12px 16px;
-  }
-}
-
-.tag-detail-topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.tag-detail-back {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: var(--text-muted);
-  background: var(--nav-pill-bg);
-  cursor: pointer;
-  transition: var(--transition-fast);
-  flex-shrink: 0;
-}
-
-.tag-detail-back:hover {
-  color: var(--accent);
-  background: var(--nav-pill-hover);
-}
-
-/* 标签 chip：运行时按 tag.color 着色 */
+/* ==================== 1. 标签 chip（位于 PageHeader 标题位） ==================== */
 .tag-detail-chip {
   display: inline-flex;
   align-items: center;
@@ -84,15 +34,8 @@
   color: #fff;
 }
 
-.tag-detail-count {
-  font-size: 12.5px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
 .tag-detail-select {
-  height: 34px;
+  height: var(--tap-target);
   padding: 0 12px;
   border-radius: var(--radius-round);
   display: inline-flex;
@@ -221,7 +164,7 @@
 .tag-batch-bar {
   position: fixed;
   left: 50%;
-  bottom: 84px;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   z-index: 150;
   display: flex;
@@ -262,6 +205,12 @@
   color: var(--text-main);
   white-space: nowrap;
   transition: var(--transition-fast);
+}
+
+@media (max-width: 768px) {
+  .tag-batch-btn {
+    height: 44px;
+  }
 }
 
 .tag-batch-btn:hover:not(:disabled) {

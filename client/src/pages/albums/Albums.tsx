@@ -1,28 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import type { Variants } from 'framer-motion';
 import { api } from '../../services/api';
 import type { Album } from '../../services/api';
 import { Loader } from '../../components/common/Loader';
 import { EmptyState } from '../../components/common/EmptyState';
-import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { ConfirmSheet } from '../../components/common/ConfirmSheet';
 import { CreateAlbumModal } from '../../components/common/CreateAlbumModal';
+import { FadeInUp } from '../../components/common/FadeInUp';
 import { Calendar, FolderPlus, Lock, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import './albums.css';
 
-/* ---------- 动效变体 ---------- */
-
-const gridContainer: Variants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
-};
-
-const gridItem: Variants = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.32, ease: 'easeOut' } },
-};
+/* ---------- 工具 ---------- */
 
 /** 封面占位插画：画框 + 山峦 + 旭日（随 CSS 变量变色） */
 const AlbumCoverArt: React.FC = () => (
@@ -117,14 +107,9 @@ export const Albums: React.FC = () => {
             onAction={() => setShowCreate(true)}
           />
         ) : (
-          <motion.div
-            className="album-grid"
-            variants={gridContainer}
-            initial="hidden"
-            animate="visible"
-          >
-            {albums.map((album) => (
-              <motion.div key={album.id} variants={gridItem}>
+          <div className="album-grid">
+            {albums.map((album, i) => (
+              <FadeInUp key={album.id} delay={Math.min(i * 0.04, 0.4)}>
                 <motion.div
                   className="album-card"
                   role="button"
@@ -181,9 +166,9 @@ export const Albums: React.FC = () => {
                     </div>
                   </div>
                 </motion.div>
-              </motion.div>
+              </FadeInUp>
             ))}
-          </motion.div>
+          </div>
         )}
       </motion.div>
 
@@ -194,13 +179,13 @@ export const Albums: React.FC = () => {
         onCreated={fetchAlbums}
       />
 
-      {/* ===== 解散相册确认弹层 ===== */}
-      <ConfirmDialog
+      {/* ===== 解散相册确认弹层（移动端底部弹层，桌面自动居中） ===== */}
+      <ConfirmSheet
         open={deleteTarget !== null}
         title={deleteTarget ? `解散相册「${deleteTarget.name}」？` : ''}
         description="相册内的图片不会被删除，只会解除与相册的归属关系，此操作不可撤销。"
         confirmText="确认解散"
-        danger
+        tone="danger"
         loading={deleting}
         onConfirm={handleDeleteAlbum}
         onClose={() => setDeleteTarget(null)}

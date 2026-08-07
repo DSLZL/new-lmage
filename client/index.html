@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="LMage Pro — 基于 Telegram 的免费图床与画廊：无损上传、相册管理、标签聚类、全球分发" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="LMage" />
     <title>LMage Pro - 图床</title>
     <script>
       // 渲染前预置主题，避免首屏闪烁（localStorage 优先，首次跟随系统）
@@ -13,6 +17,11 @@
           t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
         document.documentElement.setAttribute('data-theme', t);
+        // 同步浏览器 UI 主题色（状态栏 / 地址栏背景）
+        var meta = document.createElement('meta');
+        meta.name = 'theme-color';
+        meta.content = t === 'dark' ? '#09090b' : '#f8fafc';
+        document.head.appendChild(meta);
       })();
     </script>
   </head>

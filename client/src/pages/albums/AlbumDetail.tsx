@@ -1,10 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Variants } from 'framer-motion';
 import { toast } from 'sonner';
 import {
-  ArrowLeft,
   Calendar,
   Check,
   ImagePlus,
@@ -18,9 +16,11 @@ import { api } from '../../services/api';
 import type { Album, Image } from '../../services/api';
 import { Loader } from '../../components/common/Loader';
 import { EmptyState } from '../../components/common/EmptyState';
-import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { ConfirmSheet } from '../../components/common/ConfirmSheet';
 import { ImagePickerModal } from '../../components/common/ImagePickerModal';
 import { ImageLightbox } from '../../components/common/ImageLightbox';
+import { PageHeader } from '../../components/common/PageHeader';
+import { FadeInUp } from '../../components/common/FadeInUp';
 import { formatBytes } from '../../components/common/format';
 import '../../components/common/pageActions.css';
 import './albumdetail.css';
@@ -37,16 +37,6 @@ const isPasswordError = (err: unknown): boolean =>
   'message' in err &&
   typeof (err as { message?: unknown }).message === 'string' &&
   /密码|提取码/.test((err as { message: string }).message);
-
-const gridContainer: Variants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.03 } },
-};
-
-const gridItem: Variants = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } },
-};
 
 /* ---------- 页面主组件 ---------- */
 
@@ -194,7 +184,7 @@ export const AlbumDetail: React.FC = () => {
       if (confirm.kind === 'album') {
         await api.deleteAlbum(albumid);
         toast.success('相册已解散，其中的图片仅解除归属');
-        navigate('/albums');
+        navigate('/manage');
       } else {
         await api.deleteImagePhysically(confirm.image.id);
         toast.success('图片已在物理世界彻底抹除');
@@ -213,66 +203,54 @@ export const AlbumDetail: React.FC = () => {
 
   return (
     <div className="album-detail-container">
-      {/* 顶部毛玻璃返回栏 */}
-      <div className="ad-topbar">
-        <motion.button
-          type="button"
-          className="ad-back"
-          whileTap={{ scale: 0.88 }}
-          onClick={() => navigate('/albums')}
-          aria-label="返回相册列表"
-        >
-          <ArrowLeft size={19} strokeWidth={1.5} />
-        </motion.button>
-        <div className="ad-heading">
-          <h1 className="ad-title">{album?.name ?? '相册详情'}</h1>
-          {album?.has_password && (
-            <span className="ad-lock-chip">
-              <KeyRound size={11} strokeWidth={1.8} />
-              加密相册
-            </span>
-          )}
-        </div>
-        <div className="ad-actions">
-          {album && (
-            <>
-              <motion.button
-                type="button"
-                className={`ad-icon-btn ${selecting ? 'active' : ''}`}
-                whileTap={{ scale: 0.88 }}
-                onClick={() => {
-                  setSelecting((s) => !s);
-                  setSelectedIds([]);
-                }}
-                aria-label={selecting ? '退出多选模式' : '进入多选模式'}
-                title="多选操作"
-              >
-                <SquareCheck size={17} strokeWidth={1.5} />
-              </motion.button>
-              <motion.button
-                type="button"
-                className="ad-icon-btn"
-                whileTap={{ scale: 0.88 }}
-                onClick={() => setShowPicker(true)}
-                aria-label="加入图片"
-                title="加入图片"
-              >
-                <ImagePlus size={17} strokeWidth={1.5} />
-              </motion.button>
-              <motion.button
-                type="button"
-                className="ad-icon-btn danger"
-                whileTap={{ scale: 0.88 }}
-                onClick={() => setConfirm({ kind: 'album' })}
-                aria-label="解散相册"
-                title="解散相册"
-              >
-                <Trash2 size={17} strokeWidth={1.5} />
-              </motion.button>
-            </>
-          )}
-        </div>
-      </div>
+      {/* 顶部毛玻璃页头（全端：返回 + 标题/加密信息 + 相册操作） */}
+      <PageHeader
+        title={album?.name ?? '相册详情'}
+        subtitle={
+          album
+            ? `${images.length} 张图片${album.has_password ? ' · 加密相册' : ''}`
+            : undefined
+        }
+        onBack={() => navigate('/manage')}
+      >
+        {album && (
+          <>
+            <motion.button
+              type="button"
+              className={`ad-icon-btn ${selecting ? 'active' : ''}`}
+              whileTap={{ scale: 0.88 }}
+              onClick={() => {
+                setSelecting((s) => !s);
+                setSelectedIds([]);
+              }}
+              aria-label={selecting ? '退出多选模式' : '进入多选模式'}
+              title="多选操作"
+            >
+              <SquareCheck size={17} strokeWidth={1.5} />
+            </motion.button>
+            <motion.button
+              type="button"
+              className="ad-icon-btn"
+              whileTap={{ scale: 0.88 }}
+              onClick={() => setShowPicker(true)}
+              aria-label="加入图片"
+              title="加入图片"
+            >
+              <ImagePlus size={17} strokeWidth={1.5} />
+            </motion.button>
+            <motion.button
+              type="button"
+              className="ad-icon-btn danger"
+              whileTap={{ scale: 0.88 }}
+              onClick={() => setConfirm({ kind: 'album' })}
+              aria-label="解散相册"
+              title="解散相册"
+            >
+              <Trash2 size={17} strokeWidth={1.5} />
+            </motion.button>
+          </>
+        )}
+      </PageHeader>
 
       {loading ? (
         <Loader text="正在提取相册归档..." />
@@ -350,43 +328,38 @@ export const AlbumDetail: React.FC = () => {
               onAction={() => setShowPicker(true)}
             />
           ) : (
-            /* ===== 图片网格（懒加载 + 悬停微缩放） ===== */
-            <motion.div
-              className="ad-grid"
-              variants={gridContainer}
-              initial="hidden"
-              animate="visible"
-            >
-              {images.map((img) => {
+            /* ===== 图片网格（FadeInUp 错峰入场 + 悬停微缩放） ===== */
+            <div className="ad-grid">
+              {images.map((img, i) => {
                 const selected = selectedIds.includes(img.id);
                 return (
-                  <motion.div
-                    key={img.id}
-                    className={`ad-item ${selecting ? 'selecting' : ''} ${selected ? 'selected' : ''}`}
-                    variants={gridItem}
-                    whileHover={{ y: selecting ? -2 : -4 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => handleItemClick(img)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleItemClick(img);
-                      }
-                    }}
-                  >
-                    <img src={api.getFileUrl(img.id, true)} alt={img.file_name} loading="lazy" draggable={false} />
-                    {selecting && (
-                      <span className="ad-check">
-                        {selected && <Check size={13} strokeWidth={2.5} />}
-                      </span>
-                    )}
-                    <span className="ad-name">{img.file_name}</span>
-                  </motion.div>
+                  <FadeInUp key={img.id} delay={Math.min(i * 0.04, 0.4)}>
+                    <motion.div
+                      className={`ad-item ${selecting ? 'selecting' : ''} ${selected ? 'selected' : ''}`}
+                      whileHover={{ y: selecting ? -2 : -4 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => handleItemClick(img)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleItemClick(img);
+                        }
+                      }}
+                    >
+                      <img src={api.getFileUrl(img.id, true)} alt={img.file_name} loading="lazy" draggable={false} />
+                      {selecting && (
+                        <span className="ad-check">
+                          {selected && <Check size={13} strokeWidth={2.5} />}
+                        </span>
+                      )}
+                      <span className="ad-name">{img.file_name}</span>
+                    </motion.div>
+                  </FadeInUp>
                 );
               })}
-            </motion.div>
+            </div>
           )}
         </>
       ) : null}
@@ -426,8 +399,8 @@ export const AlbumDetail: React.FC = () => {
         onRequestDelete={(img) => setConfirm({ kind: 'image', image: img })}
       />
 
-      {/* ===== 删除确认弹层 ===== */}
-      <ConfirmDialog
+      {/* ===== 删除确认弹层（移动端底部弹层，桌面自动居中） ===== */}
+      <ConfirmSheet
         open={confirm !== null}
         title={confirm?.kind === 'album' ? '解散这本相册？' : '永久删除这张图片？'}
         description={
@@ -436,7 +409,7 @@ export const AlbumDetail: React.FC = () => {
             : '此操作将同步删除 Telegram 频道中的原始消息，且不可恢复。'
         }
         confirmText={confirm?.kind === 'album' ? '确认解散' : '永久删除'}
-        danger
+        tone="danger"
         loading={busy}
         onConfirm={handleConfirm}
         onClose={() => setConfirm(null)}

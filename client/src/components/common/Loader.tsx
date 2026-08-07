@@ -67,7 +67,7 @@ export const Loader: React.FC<LoaderProps> = ({ size = 'md', text, className }) 
               'conic-gradient(from 0deg, transparent 15%, var(--accent-light), var(--accent-blue))',
             WebkitMask: `radial-gradient(farthest-side, transparent calc(100% - ${ring}px), #000 calc(100% - ${ring}px))`,
             mask: `radial-gradient(farthest-side, transparent calc(100% - ${ring}px), #000 calc(100% - ${ring}px))`,
-            boxShadow: 'var(--accent-glow)',
+            boxShadow: '0 0 22px -4px var(--accent)',
           }}
         />
       </div>

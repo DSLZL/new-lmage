@@ -291,6 +291,21 @@
     max-width: none;
   }
 
+  /* 移动端：搜索框与操作按钮达到 44px 触控标准（字号由全局 16px 接管防聚焦缩放） */
+  .search-input {
+    height: var(--tap-target);
+  }
+
+  .search-clear {
+    width: 36px;
+    height: 36px;
+    right: 4px;
+  }
+
+  .action-btn {
+    height: var(--tap-target);
+  }
+
   .batch-actions {
     margin-left: auto;
   }
@@ -333,7 +348,6 @@
   }
 
   .search-input {
-    font-size: 13px;
     padding: 0 36px 0 38px;
   }
 

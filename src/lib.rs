@@ -45,7 +45,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
         .post_async("/upload", |req, ctx| async move {
             handlers::upload::upload(req, ctx.env).await
         })
-        // 流式代理读取 (带 D1 回收站/管理员封禁状态边缘拦截、防盗链、缩略图支持)
+        // 流式代理读取 (带 D1 回收站/管理员封禁状态边缘拦截、缩略图支持，图床外链自由访问)
         .get_async("/file/:filekey", |req, ctx| async move {
             let filekey = ctx.param("filekey").unwrap().to_string();
             handlers::file::proxy_file(req, ctx.env, filekey).await

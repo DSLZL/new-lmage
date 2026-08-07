@@ -470,7 +470,7 @@
   transform: translateY(-1px);
 }
 /* ---------- 窄屏保护 ---------- */
-@media (max-width: 380px) {
+@media (max-width: 480px) {
   .profile-stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;

@@ -25,7 +25,7 @@
 /* ==================== 悬浮胶囊容器 ==================== */
 .mobile-topbar {
   position: sticky;
-  top: 8px;
+  top: calc(8px + env(safe-area-inset-top, 0px));
   margin: 8px auto 0;
   width: calc(100% - 20px);
   max-width: 560px;
@@ -70,14 +70,14 @@
 .mtb-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   flex-shrink: 0;
 }
 
-/* 圆形搜索/主题按钮 */
+/* 圆形搜索/主题按钮（44px 触控目标标准） */
 .mtb-icon-btn {
-  width: 34px;
-  height: 34px;
+  width: var(--tap-target);
+  height: var(--tap-target);
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -100,8 +100,8 @@
 
 /* 游客登录圆钮 */
 .mtb-login {
-  width: 34px;
-  height: 34px;
+  width: var(--tap-target);
+  height: var(--tap-target);
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -123,8 +123,8 @@
 }
 
 .mtb-avatar {
-  width: 34px;
-  height: 34px;
+  width: var(--tap-target);
+  height: var(--tap-target);
   padding: 2px;
   border-radius: 50%;
   background: var(--accent-gradient);

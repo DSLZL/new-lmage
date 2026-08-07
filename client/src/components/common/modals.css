@@ -82,6 +82,13 @@
   flex-shrink: 0;
 }
 
+/* 移动端：关闭钮达到触控目标 */
+@media (max-width: 768px) {
+  .modal-close {
+    padding: 10px;
+  }
+}
+
 .modal-close:hover {
   color: var(--text-main);
   background: var(--bg-surface-hover);

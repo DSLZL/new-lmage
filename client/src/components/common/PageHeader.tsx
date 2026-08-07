@@ -4,10 +4,10 @@ import { ArrowLeft } from 'lucide-react';
 import './PageHeader.css';
 
 export interface PageHeaderProps {
-  /** 页面标题 */
-  title: string;
+  /** 页面标题（支持 ReactNode，可内嵌彩色 chip 等） */
+  title: React.ReactNode;
   /** 副标题（可选，展示于标题下方，如分类名 / 统计数） */
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   /** 返回回调；不传时自动执行路由后退 navigate(-1)（需处于 Router 内） */
   onBack?: () => void;
   /** 是否显示返回按钮，默认 true */

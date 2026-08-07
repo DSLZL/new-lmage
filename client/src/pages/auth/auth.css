@@ -8,7 +8,8 @@
   min-height: calc(100dvh - var(--mtb-height) - 150px);
   padding: calc(20px + env(safe-area-inset-top, 0px)) 20px
     calc(28px + env(safe-area-inset-bottom, 0px));
-  overflow: hidden;
+  /* 仅裁水平溢出；垂直方向必须可滚（键盘弹出后小屏表单不被裁切） */
+  overflow-x: hidden;
 }
 
 /* margin:auto 实现"空间足够时居中、内容超高时可滚动且顶部不被裁切" */
@@ -79,7 +80,7 @@
   width: 128px;
   height: 128px;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--accent-glow-strong) 0%, transparent 66%);
+  background: radial-gradient(circle, var(--accent-light) 0%, transparent 66%);
   filter: blur(8px);
   z-index: -1;
   animation: auth-halo-breathe 5s ease-in-out infinite;

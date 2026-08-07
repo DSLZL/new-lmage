@@ -19,6 +19,17 @@ function resolveInitialTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
+/** 主题写入 <html data-theme> 并持久化，同步浏览器 UI 主题色 */
+function applyThemeColor(theme: Theme) {
+  let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    document.head.appendChild(meta);
+  }
+  meta.content = theme === 'dark' ? '#09090b' : '#f8fafc';
+}
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(resolveInitialTheme);
 
@@ -26,6 +37,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('lmage_theme', theme);
+    applyThemeColor(theme);
   }, [theme]);
 
   const toggleTheme = useCallback(() => {

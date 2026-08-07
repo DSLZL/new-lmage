@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  AlertTriangle,
   Check,
   Eye,
   ImagePlus,
@@ -12,6 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 import type { Image } from '../../services/api';
@@ -23,10 +23,10 @@ import type { GalleryFilter } from '../../components/common/GalleryFilterBar';
 import { GallerySkeleton } from '../../components/common/GallerySkeleton';
 import { GalleryEmpty } from '../../components/common/GalleryEmpty';
 import { ImageLightbox } from '../../components/common/ImageLightbox';
+import { ConfirmSheet } from '../../components/common/ConfirmSheet';
 import { formatBytes, formatNumber } from '../../components/common/format';
 import './gallery.css';
 import '../../components/common/galleryList.css';
-import '../../components/common/galleryConfirm.css';
 
 /** 浏览模式单页条数（配合「加载更多」按钮，大页承载筛选排序） */
 const PAGE_SIZE = 32;
@@ -39,6 +39,7 @@ type ConfirmState =
 
 export const Gallery: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [images, setImages] = useState<Image[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -337,7 +338,7 @@ export const Gallery: React.FC = () => {
               : (user ? '把图片拖进上方上传区，瞬间完成中转归档。' : '这座艺术馆还在等待它的第一批展品。')
           }
           actionText={activeQuery ? '清除搜索' : (user ? '去上传第一张图' : '登录开启你的创作')}
-          onAction={activeQuery ? () => setQuery('') : (user ? scrollToUpload : () => window.location.href = '/login')}
+          onAction={activeQuery ? () => setQuery('') : (user ? scrollToUpload : () => navigate('/login'))}
         />
       ) : (
         <div className="masonry-grid">
@@ -408,67 +409,25 @@ export const Gallery: React.FC = () => {
         onRequestDelete={(img) => setConfirmState({ kind: 'single', image: img })}
       />
 
-      {/* 精致删除确认弹层（页面内组件） */}
-      <GalleryConfirm
-        state={confirmState}
-        busy={confirmBusy}
+      {/* 删除确认弹层（移动端底部弹层，桌面自动居中） */}
+      <ConfirmSheet
+        open={confirmState !== null}
+        title={
+          confirmState?.kind === 'batch'
+            ? `将 ${confirmState.ids.length} 张图片移入回收站？`
+            : '永久删除这张图片？'
+        }
+        description={
+          confirmState?.kind === 'batch'
+            ? '回收站内的图片不再于图库展示，可随时恢复。'
+            : '此操作将同步删除 Telegram 频道中的原始消息，且不可恢复。'
+        }
+        confirmText={confirmState?.kind === 'batch' ? '移入回收站' : '永久删除'}
+        tone="danger"
+        loading={confirmBusy}
         onConfirm={confirmState?.kind === 'batch' ? handleBatchDelete : handlePhysicalDelete}
-        onCancel={() => setConfirmState(null)}
+        onClose={() => setConfirmState(null)}
       />
     </div>
-  );
-};
-
-/* ==================== 精致删除确认弹层 ==================== */
-
-interface GalleryConfirmProps {
-  state: ConfirmState;
-  busy: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
-}
-
-const GalleryConfirm: React.FC<GalleryConfirmProps> = ({ state, busy, onConfirm, onCancel }) => {
-  return (
-    <AnimatePresence>
-      {state && (
-        <motion.div
-          className="g-confirm-overlay"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={busy ? undefined : onCancel}
-        >
-          <motion.div
-            className="g-confirm-card"
-            initial={{ opacity: 0, y: 36, scale: 0.94 }}
-            animate={{ opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 380, damping: 30 } }}
-            exit={{ opacity: 0, y: 18, scale: 0.96, transition: { duration: 0.16 } }}
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-          >
-            <div className="g-confirm-icon">
-              <AlertTriangle size={22} strokeWidth={1.5} />
-            </div>
-            <h3 className="g-confirm-title">
-              {state.kind === 'batch' ? `将 ${state.ids.length} 张图片移入回收站？` : '永久删除这张图片？'}
-            </h3>
-            <p className="g-confirm-desc">
-              {state.kind === 'batch' ? '回收站内的图片不再于图库展示，可随时恢复。' : '此操作将同步删除 Telegram 频道中的原始消息，且不可恢复。'}
-            </p>
-            <div className="g-confirm-actions">
-              <button className="g-confirm-btn" onClick={onCancel} disabled={busy}>
-                取消
-              </button>
-              <button className="g-confirm-btn danger" onClick={onConfirm} disabled={busy}>
-                {busy && <span className="g-confirm-spinner" />}
-                {state.kind === 'batch' ? '移入回收站' : '永久删除'}
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
   );
 };

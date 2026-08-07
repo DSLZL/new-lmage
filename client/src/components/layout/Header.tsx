@@ -66,10 +66,10 @@ export const Header: React.FC = () => {
     toast.success('已退出登录');
   };
 
-  // 个人资料 / 修改密码入口（对应页面由业务侧提供）
-  const handlePending = (feature: string) => {
+  // 个人资料 / 修改密码入口（统一收敛到个人中心）
+  const goProfile = () => {
     setMenuOpen(false);
-    toast.info(`${feature}功能即将上线`);
+    navigate('/profile');
   };
 
   return (
@@ -209,7 +209,7 @@ export const Header: React.FC = () => {
                     type="button"
                     className="dropdown-item"
                     role="menuitem"
-                    onClick={() => handlePending('个人资料')}
+                    onClick={goProfile}
                   >
                     <Settings size={14} strokeWidth={1.5} />
                     <span>个人资料</span>
@@ -218,7 +218,7 @@ export const Header: React.FC = () => {
                     type="button"
                     className="dropdown-item"
                     role="menuitem"
-                    onClick={() => handlePending('修改密码')}
+                    onClick={goProfile}
                   >
                     <KeyRound size={14} strokeWidth={1.5} />
                     <span>修改密码</span>

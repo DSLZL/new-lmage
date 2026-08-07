@@ -34,7 +34,15 @@
 
 .page-header-sticky {
   position: sticky;
-  top: 0;
+  /* 移动端：悬浮在全局顶栏之下 */
+  top: calc(64px + env(safe-area-inset-top, 0px));
+}
+
+/* 桌面端同样展示（详情页等全端功能页头），sticky 偏移避开 PC 悬浮导航 */
+@media (min-width: 769px) {
+  .page-header-sticky {
+    top: 96px;
+  }
 }
 
 /* ---------- 返回按钮 ---------- */
@@ -90,11 +98,4 @@
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-/* 桌面端隐藏（与 MobileTopBar 同断点规则） */
-@media (min-width: 769px) {
-  .page-header {
-    display: none;
-  }
 }

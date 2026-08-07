@@ -31,7 +31,6 @@
 - **流式代理网关**：`GET /file/:filekey` 实时换取 Telegram 物理路径并流式回源
 - **Cloudflare 边缘缓存**：命中 `Cache API` 物理缓存直接秒开；未命中时后台异步写入缓存，不阻塞响应；强缓存头 `Cache-Control: public, s-maxage=31536000, max-age=31536000, immutable`
 - **缩略图**：`?size=thumb` 直接复用 Telegram 自动生成的缩略图，大幅节省流量
-- **防盗链**：通过 `ALLOWED_DOMAINS` 域名白名单校验 `Referer`/`Origin`，非法来源返回 403（可配置关闭）
 - **封禁/回收站边缘拦截**：图片被管理员封禁（403）或移入回收站（404）时，在 D1 状态层直接拦截
 - **点击统计**：每次成功回源自动累计 `views` 并刷新 `last_accessed_at`
 
@@ -100,7 +99,7 @@ src/
 └── handlers/                 # 表现层：HTTP 处理器（只做参数解析、鉴权、编排）
     ├── auth.rs               # 212 行 注册 / 登录 / 当前用户 / 资料修改 / 修改密码
     ├── upload.rs             #  85 行 上传（可选鉴权、20MB 限制、TG 中转、写 D1）
-    ├── file.rs               # 142 行 流式代理（边缘缓存/防盗链/缩略图/点击统计）与物理删除
+    ├── file.rs               # 117 行 流式代理（边缘缓存/缩略图/点击统计）与物理删除
     ├── image.rs              # 136 行 图片分页列表 / 详情 / 搜索 / 批量移入回收站
     ├── album.rs              # 207 行 相册列表 / 创建 / 详情（提取码校验）/ 批量归属 / 删除
     ├── tag.rs                # 140 行 标签列表 / 创建 / 批量打标 / 按标签拉取图片
@@ -141,7 +140,7 @@ client/
 | 方法 | 路径 | 鉴权 | 说明 |
 |------|------|------|------|
 | POST | `/upload` | 可选 | 上传（multipart 表单字段 `file`，可选 `albumid`；未登录归入 anonymous；单文件 ≤ 20MB），返回 `[{ "src": "/file/xxx" }]` |
-| GET | `/file/:filekey` | 无 | 流式读取原图；`?size=thumb` 取缩略图；边缘缓存 + 防盗链 + 封禁/回收站拦截 + 点击统计 |
+| GET | `/file/:filekey` | 无 | 流式读取原图；`?size=thumb` 取缩略图；边缘缓存 + 封禁/回收站拦截 + 点击统计（图床外链自由访问） |
 | DELETE | `/api/images/:imageid` | 登录 | 物理永久删除：销毁 TG 频道消息 + 抹除 D1 记录（本人或 admin） |
 
 ### 鉴权中心
@@ -275,7 +274,6 @@ npx wrangler deploy
 | `TG_Bot_Token` | 是 | Telegram Bot Token（BotFather 创建），Worker 调用 Bot API 的凭证 |
 | `TG_Chat_ID` | 是 | 目标频道/群组的 Chat ID，所有图片经 `sendDocument` 存入此处 |
 | `JWT_SECRET` | 是 | JWT（HS256）签名密钥，泄露会导致 Token 可伪造，请使用高强度随机值 |
-| `ALLOWED_DOMAINS` | 否 | 防盗链域名白名单，逗号分隔（如 `example.com,img.example.com`）；为空或 `*` 时关闭防盗链校验 |
 
 ### D1 数据库绑定（wrangler.toml）
 

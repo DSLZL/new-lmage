@@ -1,17 +1,22 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Header } from './components/layout/Header';
 import { MobileTopBar } from './components/layout/MobileTopBar';
 import { BottomTab } from './components/layout/BottomTab';
-import { Login } from './pages/auth/Login';
-import { Gallery } from './pages/gallery/Gallery';
-import { Manage } from './pages/manage/Manage';
-import { AlbumDetail } from './pages/albums/AlbumDetail';
-import { TagDetail } from './pages/tags/TagDetail';
-import { Profile } from './pages/profile/Profile';
+import { Loader } from './components/common/Loader';
 import { Toaster } from 'sonner';
+
+/* 路由级代码分割：首屏只加载图库，其余页面按需进入 */
+const Gallery = lazy(() => import('./pages/gallery/Gallery').then((m) => ({ default: m.Gallery })));
+const Login = lazy(() => import('./pages/auth/Login').then((m) => ({ default: m.Login })));
+const Manage = lazy(() => import('./pages/manage/Manage').then((m) => ({ default: m.Manage })));
+const AlbumDetail = lazy(() =>
+  import('./pages/albums/AlbumDetail').then((m) => ({ default: m.AlbumDetail }))
+);
+const TagDetail = lazy(() => import('./pages/tags/TagDetail').then((m) => ({ default: m.TagDetail })));
+const Profile = lazy(() => import('./pages/profile/Profile').then((m) => ({ default: m.Profile })));
 
 import './styles/global.css';
 import './components/layout/header.css';
@@ -34,7 +39,6 @@ const AppContent: React.FC = () => {
   return (
     <Router>
       <div className="app-bg-grid" />
-      <div className="app-bg-glow" />
 
       {/* PC 端悬浮导航栏 */}
       <Header />
@@ -42,7 +46,14 @@ const AppContent: React.FC = () => {
       <MobileTopBar />
 
       <main className="app-main-content" style={{ paddingBottom: '32px' }}>
-        <Routes>
+        <Suspense
+          fallback={
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '12vh' }}>
+              <Loader size="md" text="加载中..." />
+            </div>
+          }
+        >
+          <Routes>
           {/* 游客直接畅行访问主图库 */}
           <Route path="/" element={<Gallery />} />
           
@@ -65,6 +76,7 @@ const AppContent: React.FC = () => {
           <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        </Suspense>
       </main>
 
       {/* 移动端底部 Tab 导航 */}

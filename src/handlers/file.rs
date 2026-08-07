@@ -2,36 +2,10 @@ use crate::core::{cors, crypto, tg};
 use crate::domain::image;
 use worker::*;
 
-// 1. 流式图片代理网关（完美打通 Cloudflare Cache API 全球边缘节点物理缓存，防盗链，点击量统计，多尺寸缩略图）
+// 1. 流式图片代理网关（打通 Cloudflare Cache API 全球边缘节点物理缓存，点击量统计，多尺寸缩略图）
 pub async fn proxy_file(req: Request, env: Env, filekey: String) -> Result<Response> {
     let db = env.d1("DB")?;
     let bot_token = env.var("TG_Bot_Token")?.to_string();
-
-    // ⚡ 防盗链域名白名单校验
-    if let Ok(allowed_domains_var) = env.var("ALLOWED_DOMAINS") {
-        let allowed_str = allowed_domains_var.to_string();
-        if !allowed_str.trim().is_empty() && allowed_str != "*" {
-            let referer = req.headers().get("Referer")?.unwrap_or_default();
-            let origin = req.headers().get("Origin")?.unwrap_or_default();
-            let check_target = if !referer.is_empty() { referer } else { origin };
-
-            if !check_target.is_empty() {
-                let mut is_allowed = false;
-                let domains: Vec<&str> = allowed_str.split(',').map(|d| d.trim()).collect();
-                for domain in domains {
-                    if check_target.contains(domain) {
-                        is_allowed = true;
-                        break;
-                    }
-                }
-                if !is_allowed {
-                    let mut headers = cors::apply_cors(Headers::new())?;
-                    headers.set("Content-Type", "application/json")?;
-                    return Ok(Response::error("防盗链拦截：非法域名请求！", 403)?.with_headers(headers));
-                }
-            }
-        }
-    }
 
     // ⚡ 状态校验必须先于缓存检查：封禁/回收站必须立即生效，
     // 否则被边缘缓存兜住的图片可绕过拦截继续读取

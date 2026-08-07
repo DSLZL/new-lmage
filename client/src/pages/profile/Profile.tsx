@@ -226,7 +226,7 @@ export const Profile: React.FC = () => {
             </div>
 
             <div className="profile-guest-actions">
-              <button className="btn btn-primary pg-login-btn" onClick={() => navigate('/login')}>
+              <button className="profile-login-btn" onClick={() => navigate('/login')}>
                 <LogIn size={14} strokeWidth={2} />
                 <span>立即加入</span>
               </button>

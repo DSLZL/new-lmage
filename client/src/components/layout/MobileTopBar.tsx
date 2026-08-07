@@ -71,10 +71,10 @@ export const MobileTopBar: React.FC = () => {
     toast.success('已退出登录');
   };
 
-  // 个人资料 / 修改密码入口（对应页面由业务侧提供）
-  const handlePending = (feature: string) => {
+  // 个人资料 / 修改密码入口（统一收敛到个人中心）
+  const goProfile = () => {
     setMenuOpen(false);
-    toast.info(`${feature}功能即将上线`);
+    navigate('/profile');
   };
 
   return (
@@ -166,11 +166,11 @@ export const MobileTopBar: React.FC = () => {
                   transition={{ duration: 0.18, ease: 'easeOut' }}
                 >
                   <div className="mtb-menu-name">{user.username}</div>
-                  <button type="button" className="dropdown-item" role="menuitem" onClick={() => handlePending('个人资料')}>
+                  <button type="button" className="dropdown-item" role="menuitem" onClick={goProfile}>
                     <Settings size={15} strokeWidth={1.5} />
                     <span>个人资料</span>
                   </button>
-                  <button type="button" className="dropdown-item" role="menuitem" onClick={() => handlePending('修改密码')}>
+                  <button type="button" className="dropdown-item" role="menuitem" onClick={goProfile}>
                     <KeyRound size={15} strokeWidth={1.5} />
                     <span>修改密码</span>
                   </button>

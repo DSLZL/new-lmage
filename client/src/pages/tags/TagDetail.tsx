@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
-  ArrowLeft,
   Check,
   CheckSquare,
   Tag as TagIcon,
@@ -17,7 +16,9 @@ import { Loader } from '../../components/common/Loader';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ImageLightbox } from '../../components/common/ImageLightbox';
 import { TagSelectModal } from '../../components/common/TagSelectModal';
-import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { ConfirmSheet } from '../../components/common/ConfirmSheet';
+import { PageHeader } from '../../components/common/PageHeader';
+import { FadeInUp } from '../../components/common/FadeInUp';
 import './tagdetail.css';
 
 /* ---------- 工具 ---------- */
@@ -29,16 +30,6 @@ const hexToRgba = (hex: string, alpha: number): string => {
   const num = parseInt(full, 16);
   if (Number.isNaN(num)) return `rgba(8, 145, 178, ${alpha})`;
   return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
-};
-
-const gridContainer = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.03 } },
-};
-
-const gridItem = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } },
 };
 
 /* ---------- 页面主组件 ---------- */
@@ -152,18 +143,9 @@ export const TagDetail: React.FC = () => {
 
   return (
     <div className="tag-detail-container">
-      {/* 顶部毛玻璃返回栏 */}
-      <div className="tag-detail-topbar">
-        <div className="tag-detail-topbar-left">
-          <motion.button
-            type="button"
-            className="tag-detail-back"
-            whileTap={{ scale: 0.9 }}
-            onClick={() => navigate('/tags')}
-            aria-label="返回标签列表"
-          >
-            <ArrowLeft size={14} strokeWidth={1.5} />
-          </motion.button>
+      {/* 顶部毛玻璃页头（全端：彩色 chip 标题 + 多选操作） */}
+      <PageHeader
+        title={
           <span
             className={`tag-detail-chip ${tag?.color ? '' : 'tag-detail-chip-gradient'}`}
             style={chipStyle(tag?.color)}
@@ -171,8 +153,10 @@ export const TagDetail: React.FC = () => {
             <TagIcon size={13} strokeWidth={1.8} />
             {tag?.name ?? '标签'}
           </span>
-          <span className="tag-detail-count">{images.length} 张图片</span>
-        </div>
+        }
+        subtitle={`${images.length} 张图片`}
+        onBack={() => navigate('/manage/tags')}
+      >
         <motion.button
           type="button"
           className={`tag-detail-select ${multiSelect ? 'active' : ''}`}
@@ -187,7 +171,7 @@ export const TagDetail: React.FC = () => {
           )}
           {multiSelect ? '退出选择' : '多选'}
         </motion.button>
-      </div>
+      </PageHeader>
 
       {/* 加载态 */}
       {loading && <Loader text="正在汇集标签图片..." />}
@@ -214,51 +198,46 @@ export const TagDetail: React.FC = () => {
         />
       )}
 
-      {/* 图片网格 */}
+      {/* 图片网格（FadeInUp 错峰入场） */}
       {!loading && tag && images.length > 0 && (
-        <motion.div
-          className="tag-detail-grid"
-          variants={gridContainer}
-          initial="hidden"
-          animate="visible"
-        >
-          {images.map((img) => {
+        <div className="tag-detail-grid">
+          {images.map((img, i) => {
             const selected = selectedIds.includes(img.id);
             return (
-              <motion.button
-                key={img.id}
-                type="button"
-                className={`tag-detail-item ${selected ? 'is-selected' : ''}`}
-                variants={gridItem}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={() =>
-                  multiSelect ? toggleSelect(img.id) : setLightbox(img)
-                }
-                aria-label={multiSelect ? `选择图片 ${img.file_name}` : `预览图片 ${img.file_name}`}
-              >
-                <img
-                  src={api.getFileUrl(img.id, true)}
-                  alt={img.file_name}
-                  loading="lazy"
-                  decoding="async"
-                  className="tag-detail-img"
-                />
-                {multiSelect && (
-                  <motion.span
-                    className="tag-detail-check"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 22 }}
-                  >
-                    {selected && <Check size={13} strokeWidth={2.5} />}
-                  </motion.span>
-                )}
-                <span className="tag-detail-name">{img.file_name}</span>
-              </motion.button>
+              <FadeInUp key={img.id} delay={Math.min(i * 0.04, 0.4)}>
+                <motion.button
+                  type="button"
+                  className={`tag-detail-item ${selected ? 'is-selected' : ''}`}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() =>
+                    multiSelect ? toggleSelect(img.id) : setLightbox(img)
+                  }
+                  aria-label={multiSelect ? `选择图片 ${img.file_name}` : `预览图片 ${img.file_name}`}
+                >
+                  <img
+                    src={api.getFileUrl(img.id, true)}
+                    alt={img.file_name}
+                    loading="lazy"
+                    decoding="async"
+                    className="tag-detail-img"
+                  />
+                  {multiSelect && (
+                    <motion.span
+                      className="tag-detail-check"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+                    >
+                      {selected && <Check size={13} strokeWidth={2.5} />}
+                    </motion.span>
+                  )}
+                  <span className="tag-detail-name">{img.file_name}</span>
+                </motion.button>
+              </FadeInUp>
             );
           })}
-        </motion.div>
+        </div>
       )}
 
       {/* 底部批量操作条 */}
@@ -322,13 +301,13 @@ export const TagDetail: React.FC = () => {
         onConfirm={handleBatchTag}
       />
 
-      {/* 永久删除确认 */}
-      <ConfirmDialog
+      {/* 永久删除确认（移动端底部弹层，桌面自动居中） */}
+      <ConfirmSheet
         open={deleteTarget !== null}
         title="永久删除这张图片？"
         description={`「${deleteTarget?.file_name ?? ''}」将从存储中彻底删除，无法恢复`}
         confirmText="永久删除"
-        danger
+        tone="danger"
         loading={deleting}
         onConfirm={handleDelete}
         onClose={() => setDeleteTarget(null)}

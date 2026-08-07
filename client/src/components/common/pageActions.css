@@ -55,7 +55,7 @@
 .batch-bar {
   position: fixed;
   left: 50%;
-  bottom: 92px;
+  bottom: calc(92px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   z-index: 150;
   display: flex;
@@ -141,6 +141,16 @@
   .detail-grid {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 12px;
+  }
+
+  /* 移动端：批量操作按钮与勾选徽标达到触控目标 */
+  .batch-bar-btn {
+    height: 44px;
+  }
+
+  .detail-img-check {
+    width: 28px;
+    height: 28px;
   }
 }
 

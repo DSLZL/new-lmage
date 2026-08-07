@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { EmptyIllustration } from './EmptyIllustration';
 import './EmptyState.css';
 
 interface EmptyStateProps {
@@ -10,7 +11,7 @@ interface EmptyStateProps {
   onAction?: () => void;
 }
 
-/** 手绘插画空状态：相册（画框 + 山峦） / 标签（便签挂牌） */
+/** 手绘插画空状态：相册（EmptyIllustration 画框山峦）/ 标签（便签挂牌） */
 export const EmptyState: React.FC<EmptyStateProps> = ({
   variant = 'album',
   title,
@@ -26,7 +27,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       transition={{ duration: 0.5, ease: 'easeOut' }}
     >
       <div className="empty-state-art">
-        {variant === 'album' ? <AlbumArt /> : <TagArt />}
+        {variant === 'album' ? <EmptyIllustration size={220} /> : <TagArt />}
       </div>
       <h3 className="empty-state-title">{title}</h3>
       {description && <p className="empty-state-desc">{description}</p>}
@@ -45,60 +46,6 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 };
 
 const drawTransition = { duration: 1.1, ease: 'easeInOut' as const };
-
-/** 相册插画：微斜画框 + 山峦轮廓 + 旭日 */
-const AlbumArt: React.FC = () => (
-  <svg viewBox="0 0 220 150" fill="none" className="empty-art-svg" aria-hidden>
-    <motion.rect
-      x="54" y="20" width="114" height="90" rx="12"
-      transform="rotate(-3 54 20)"
-      stroke="var(--accent-light)"
-      strokeWidth="2"
-      strokeLinecap="round"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8, delay: 0.15 }}
-    />
-    <rect
-      x="66" y="31" width="90" height="68" rx="8"
-      transform="rotate(-3 66 31)"
-      stroke="var(--border-subtle)"
-      strokeWidth="1.5"
-      strokeDasharray="4 7"
-      strokeLinecap="round"
-    />
-    <motion.path
-      d="M72 82 L94 54 L106 68 L115 60 L138 82"
-      stroke="var(--accent)"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      initial={{ pathLength: 0 }}
-      animate={{ pathLength: 1 }}
-      transition={drawTransition}
-    />
-    <motion.circle
-      cx="133" cy="46" r="6"
-      fill="var(--accent-light)"
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      transition={{ duration: 0.45, delay: 0.8 }}
-    />
-    <circle
-      cx="133" cy="46" r="9.5"
-      stroke="var(--accent-light)"
-      strokeWidth="1.2"
-      strokeDasharray="2 4"
-      strokeLinecap="round"
-      opacity="0.6"
-    />
-    <path
-      d="M162 42 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 z"
-      fill="var(--accent-light)"
-      opacity="0.85"
-    />
-  </svg>
-);
 
 /** 标签插画：挂牌便签 + 打孔 + 虚线挂绳 */
 const TagArt: React.FC = () => (

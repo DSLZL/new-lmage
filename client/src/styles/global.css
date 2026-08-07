@@ -47,11 +47,6 @@ body {
     background-image: var(--svg-noise), var(--svg-topo-dark);
 }
 
-/* 呼吸中心渐变灯光 (亮模式稍微柔和) */
-
-
-[data-theme='dark'] 
-
 /* 3. 极细高级滚动条 */
 ::-webkit-scrollbar {
   width: 6px;
