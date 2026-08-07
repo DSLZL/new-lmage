@@ -410,11 +410,13 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
                   </AnimatePresence>
                 </div>
 
-                {/* 危险操作 */}
-                <button className="lightbox-delete" onClick={() => onRequestDelete(image)}>
-                  <Trash2 size={14} strokeWidth={1.5} />
-                  永久删除
-                </button>
+                {/* 危险操作（登录专属：删除为管理权益，游客隐藏） */}
+                {loggedIn && (
+                  <button className="lightbox-delete" onClick={() => onRequestDelete(image)}>
+                    <Trash2 size={14} strokeWidth={1.5} />
+                    永久删除
+                  </button>
+                )}
               </div>
             </motion.div>
           </motion.div>

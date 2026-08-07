@@ -96,12 +96,18 @@ pub async fn batch_tag_images(mut req: Request, env: Env) -> Result<Response> {
             continue;
         }
 
-        for tag_name in &body.tags {
-            let tag_opt = tag::get_by_name(&db, tag_name, &claims.sub).await?;
-            let t = match tag_opt {
+        // 前端传标签 id（TagSelectModal 勾选的是 tag.id），按 id 精确查询；
+        // 此前按 name 反查导致 UUID 永远匹配不上名称，打标静默空转
+        for tag_id in &body.tags {
+            let t = match tag::get_by_id(&db, tag_id).await? {
                 Some(tag_item) => tag_item,
                 None => continue,
             };
+
+            // 标签归属校验：仅能操作本人标签（admin 除外）
+            if t.user_id != claims.sub && claims.username != "admin" {
+                continue;
+            }
 
             if body.action == "add" {
                 let _ = db.prepare("INSERT OR IGNORE INTO image_tags (image_id, tag_id) VALUES (?, ?)")
@@ -151,7 +157,7 @@ pub async fn get_tag_images(req: Request, env: Env, tagid: String) -> Result<Res
     let images = db.prepare(
         "SELECT i.* FROM images i
          JOIN image_tags it ON i.id = it.image_id
-         WHERE it.tag_id = ? AND i.is_trash = 0
+         WHERE it.tag_id = ? AND i.is_trash = 0 AND i.is_blocked = 0
          ORDER BY i.uploaded_at DESC"
     )
     .bind(&[tagid.into()])?

@@ -165,13 +165,6 @@ export const api = {
       body: JSON.stringify({ file_ids: fileids }),
     }),
 
-  getImageDetail: (imageid: string) =>
-    request<Image>(`/api/images/${imageid}`, {
-      method: 'GET',
-      headers: getHeaders(),
-    }),
-
-  /** 单张图片的全部标签（光箱联动：展示与同步编辑） */
   getImageTags: (imageid: string) =>
     request<{ tags: Tag[] }>(`/api/images/${imageid}/tags`, {
       method: 'GET',

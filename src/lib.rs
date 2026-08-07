@@ -75,9 +75,9 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
         .get_async("/api/images/search", |req, ctx| async move {
             handlers::image::search_user_images(req, ctx.env).await
         })
-        // 批量删除
+        // 批量永久删除（纯图床模式：删除即永久，无回收站概念）
         .post_async("/api/images/batch/delete", |req, ctx| async move {
-            handlers::image::batch_move_to_trash(req, ctx.env).await
+            handlers::image::batch_permanent_delete(req, ctx.env).await
         })
         // 单张详情
         .get_async("/api/images/:imageid", |req, ctx| async move {

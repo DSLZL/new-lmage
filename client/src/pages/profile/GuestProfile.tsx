@@ -149,7 +149,7 @@ const GUEST_PERKS = [
 ] as const;
 
 const GUEST_RIGHTS = ['浏览画廊与搜索', '外链复制四格式'];
-const MEMBER_RIGHTS = ['全部游客权益', '无限制上传（20MB/张）', '相册归档与管理', '标签批量打标', '回收站与物理删除'];
+const MEMBER_RIGHTS = ['全部游客权益', '无限制上传（20MB/张）', '相册归档与管理', '标签批量打标', '永久物理删除'];
 
 /**
  * GuestProfile — 未登录「我的」品牌引导页

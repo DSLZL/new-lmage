@@ -117,7 +117,7 @@ pub async fn get_album_detail(req: Request, env: Env, albumid: String) -> Result
         None => return Response::error("相册不存在", 404),
     };
 
-    let images = db.prepare("SELECT * FROM images WHERE album_id = ? AND is_trash = 0 ORDER BY uploaded_at DESC")
+    let images = db.prepare("SELECT * FROM images WHERE album_id = ? AND is_trash = 0 AND is_blocked = 0 ORDER BY uploaded_at DESC")
         .bind(&[albumid.into()])?
         .all()
         .await?

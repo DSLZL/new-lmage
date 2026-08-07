@@ -1,4 +1,4 @@
-use crate::core::{cors, crypto};
+use crate::core::{cors, crypto, tg};
 use crate::domain::image::{self, Image};
 use worker::*;
 
@@ -28,14 +28,14 @@ pub async fn get_user_images(req: Request, env: Env) -> Result<Response> {
         Some(c) => {
             let images = db
                 .prepare(
-                    "SELECT * FROM images WHERE user_id = ? AND is_trash = 0 ORDER BY uploaded_at DESC LIMIT ? OFFSET ?"
+                    "SELECT * FROM images WHERE user_id = ? AND is_trash = 0 AND is_blocked = 0 ORDER BY uploaded_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(&[c.sub.clone().into(), limit.into(), offset.into()])?
                 .all()
                 .await?
                 .results::<Image>()?;
             let count_res = db
-                .prepare("SELECT COUNT(*) as count FROM images WHERE user_id = ? AND is_trash = 0")
+                .prepare("SELECT COUNT(*) as count FROM images WHERE user_id = ? AND is_trash = 0 AND is_blocked = 0")
                 .bind(&[c.sub.clone().into()])?
                 .first::<serde_json::Value>(None)
                 .await?;
@@ -124,7 +124,7 @@ pub async fn search_user_images(req: Request, env: Env) -> Result<Response> {
     let images = match &claims {
         Some(c) => db
             .prepare(
-                "SELECT * FROM images WHERE user_id = ? AND is_trash = 0 AND file_name LIKE ? ORDER BY uploaded_at DESC"
+                "SELECT * FROM images WHERE user_id = ? AND is_trash = 0 AND is_blocked = 0 AND file_name LIKE ? ORDER BY uploaded_at DESC"
             )
             .bind(&[c.sub.clone().into(), like_query.into()])?
             .all()
@@ -150,9 +150,11 @@ pub async fn search_user_images(req: Request, env: Env) -> Result<Response> {
     Ok(response)
 }
 
-// 4. 批量图片移动到回收站
-pub async fn batch_move_to_trash(mut req: Request, env: Env) -> Result<Response> {
+// 4. 批量物理永久删除（纯图床模式：删除即永久，无回收站概念）
+pub async fn batch_permanent_delete(mut req: Request, env: Env) -> Result<Response> {
     let db = env.d1("DB")?;
+    let bot_token = env.var("TG_Bot_Token")?.to_string();
+    let chat_id = env.var("TG_Chat_ID")?.to_string();
     let jwt_secret = env.var("JWT_SECRET")?.to_string();
     let claims = match crypto::authenticate(&req, &jwt_secret) {
         Ok(c) => c,
@@ -170,13 +172,31 @@ pub async fn batch_move_to_trash(mut req: Request, env: Env) -> Result<Response>
         Err(_) => return Response::error("请求 JSON 格式错误", 400),
     };
 
+    // 边缘缓存清理需要请求源（origin 前缀拼缓存 key）
+    let origin = req
+        .url()
+        .ok()
+        .map(|u| format!("{}://{}", u.scheme(), u.host_str().unwrap_or("")));
+
     let mut success_count = 0;
     for full_id in body.fileids {
         // D1 存完整 id（纯 file_id + 后缀），查询与写入都用完整 id
         if let Ok(Some(img)) = image::get_by_id(&db, &full_id).await {
             if img.user_id == claims.sub || claims.username == "admin" {
-                let _ = image::set_trash_status(&db, &full_id, 1).await;
-                // 失效内存状态缓存：回收站操作即时生效（不等待 30s TTL）
+                // 1) 销毁 TG 频道原始消息
+                if let Some(msg_id) = img.message_id {
+                    let _ = tg::delete_message(&bot_token, &chat_id, msg_id).await;
+                }
+                // 2) 清边缘缓存（原图 + 缩略图），防止已删图片被缓存继续吐给用户
+                if let Some(ref origin) = origin {
+                    for suffix in ["", "?size=thumb"] {
+                        let cache_key = format!("{}/file/{}{}", origin, full_id, suffix);
+                        let _ = Cache::default().delete(&cache_key, true).await;
+                    }
+                }
+                // 3) 抹除 D1 记录（含 image_tags 关联清理）
+                let _ = image::delete_physically(&db, &full_id).await;
+                // 4) 失效内存状态缓存
                 crate::core::img_cache::invalidate(&full_id);
                 success_count += 1;
             }
@@ -188,7 +208,7 @@ pub async fn batch_move_to_trash(mut req: Request, env: Env) -> Result<Response>
 
     let response = Response::from_json(&serde_json::json!({
         "success": true,
-        "message": format!("成功将 {} 张图片移入回收站", success_count)
+        "message": format!("已永久删除 {} 张图片（TG 消息与边缘缓存同步销毁）", success_count)
     }))?.with_headers(headers);
 
     Ok(response)

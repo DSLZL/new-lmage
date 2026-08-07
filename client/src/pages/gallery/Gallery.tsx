@@ -35,7 +35,7 @@ import '../../components/common/galleryList.css';
 /** 浏览模式单页条数（配合「加载更多」按钮，大页承载筛选排序） */
 const PAGE_SIZE = 32;
 
-/** 删除确认弹层状态：批量回收站 / 单张物理抹除 */
+/** 删除确认弹层状态：批量永久删除 / 单张物理抹除 */
 type ConfirmState =
   | { kind: 'batch'; ids: string[] }
   | { kind: 'single'; image: Image }
@@ -224,7 +224,7 @@ export const Gallery: React.FC = () => {
     e.stopPropagation();
     // 游客：批量管理（打标/归档/删除）为登录权益，引导注册
     if (!user) {
-      toast.info('登录后可批量管理图片（打标 / 归档 / 回收站）');
+      toast.info('登录后可批量管理图片（打标 / 归档 / 删除）');
       navigate('/login');
       return;
     }
@@ -240,7 +240,7 @@ export const Gallery: React.FC = () => {
     setConfirmBusy(true);
     try {
       const res = await api.batchDeleteImages(confirmState.ids);
-      toast.success(res.message || `已将 ${confirmState.ids.length} 张图片移入回收站`);
+      toast.success(res.message || `已永久删除 ${confirmState.ids.length} 张图片`);
       setSelectedIds([]);
       setConfirmState(null);
       refresh();
@@ -354,7 +354,7 @@ export const Gallery: React.FC = () => {
                   onClick={() => setConfirmState({ kind: 'batch', ids: selectedIds })}
                 >
                   <Trash2 size={15} strokeWidth={1.5} />
-                  回收站
+                  删除
                 </motion.button>
                 <button className="action-btn" onClick={clearSelection}>
                   <X size={15} strokeWidth={1.5} />
@@ -470,15 +470,15 @@ export const Gallery: React.FC = () => {
         open={confirmState !== null}
         title={
           confirmState?.kind === 'batch'
-            ? `将 ${confirmState.ids.length} 张图片移入回收站？`
+            ? `永久删除 ${confirmState.ids.length} 张图片？`
             : '永久删除这张图片？'
         }
         description={
           confirmState?.kind === 'batch'
-            ? '回收站内的图片不再于图库展示，可随时恢复。'
+            ? '将同步删除 Telegram 频道中的原始消息与边缘缓存，且不可恢复。'
             : '此操作将同步删除 Telegram 频道中的原始消息，且不可恢复。'
         }
-        confirmText={confirmState?.kind === 'batch' ? '移入回收站' : '永久删除'}
+        confirmText="永久删除"
         tone="danger"
         loading={confirmBusy}
         onConfirm={confirmState?.kind === 'batch' ? handleBatchDelete : handlePhysicalDelete}

@@ -68,24 +68,13 @@ pub async fn get_by_id(db: &D1Database, id: &str) -> Result<Option<Image>> {
 }
 
 pub async fn delete_physically(db: &D1Database, id: &str) -> Result<()> {
-    db.prepare("DELETE FROM images WHERE id = ?")
+    // 先清关联标签（双保险：不依赖外键级联是否生效）
+    db.prepare("DELETE FROM image_tags WHERE image_id = ?")
         .bind(&[id.into()])?
         .run()
         .await?;
-    Ok(())
-}
-
-pub async fn set_trash_status(db: &D1Database, id: &str, is_trash: i32) -> Result<()> {
-    db.prepare("UPDATE images SET is_trash = ? WHERE id = ?")
-        .bind(&[is_trash.into(), id.into()])?
-        .run()
-        .await?;
-    Ok(())
-}
-
-pub async fn set_block_status(db: &D1Database, id: &str, is_blocked: i32) -> Result<()> {
-    db.prepare("UPDATE images SET is_blocked = ? WHERE id = ?")
-        .bind(&[is_blocked.into(), id.into()])?
+    db.prepare("DELETE FROM images WHERE id = ?")
+        .bind(&[id.into()])?
         .run()
         .await?;
     Ok(())
