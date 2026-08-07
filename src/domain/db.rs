@@ -98,5 +98,68 @@ pub async fn init_db(db: &D1Database) -> Result<()> {
         );"
     ).run().await?;
 
+    // 6. 温和迁移：老版本（JS 时代）的 D1 表可能缺新列，
+    // CREATE TABLE IF NOT EXISTS 不会重建已存在的表，必须逐列补齐
+    migrate(db).await?;
+
+    Ok(())
+}
+
+/// 检查表缺失的列并 ALTER TABLE ADD COLUMN 补齐（幂等，不触碰既有数据）
+async fn migrate(db: &D1Database) -> Result<()> {
+    let tables: [(&str, &[(&str, &str)]); 5] = [
+        (
+            "users",
+            &[
+                ("avatar_url", "TEXT"),
+                ("bio", "TEXT"),
+                ("created_at", "INTEGER"),
+                ("updated_at", "INTEGER"),
+            ],
+        ),
+        (
+            "albums",
+            &[
+                ("description", "TEXT"),
+                ("cover_url", "TEXT"),
+                ("password_hash", "TEXT"),
+            ],
+        ),
+        (
+            "images",
+            &[
+                ("album_id", "TEXT"),
+                ("message_id", "INTEGER"),
+                ("thumb_file_id", "TEXT"),
+                ("views", "INTEGER DEFAULT 0"),
+                ("last_accessed_at", "INTEGER"),
+                ("is_trash", "INTEGER DEFAULT 0"),
+                ("is_blocked", "INTEGER DEFAULT 0"),
+            ],
+        ),
+        ("tags", &[("color", "TEXT")]),
+        ("image_tags", &[]),
+    ];
+
+    for (table, columns) in tables {
+        // PRAGMA 不支持参数绑定，表名来自代码常量，无注入风险
+        let stmt = db.prepare(&format!("PRAGMA table_info({})", table));
+        let rows = stmt.all().await?;
+        let mut existing: std::collections::HashSet<String> = std::collections::HashSet::new();
+        for row in rows.results::<serde_json::Value>()? {
+            if let Some(name) = row.get("name").and_then(|v| v.as_str()) {
+                existing.insert(name.to_string());
+            }
+        }
+
+        for (col, ddl) in columns {
+            if !existing.contains(*col) {
+                let sql = format!("ALTER TABLE {} ADD COLUMN {} {}", table, col, ddl);
+                db.prepare(&sql).run().await?;
+                console_log!("[migrate] {} ADD COLUMN {} {}", table, col, ddl);
+            }
+        }
+    }
+
     Ok(())
 }
