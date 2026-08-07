@@ -16,12 +16,12 @@ pub async fn proxy_file(req: Request, env: Env, filekey: String) -> Result<Respo
 
     if let Some(ref img) = img_opt {
         if img.is_blocked == 1 {
-            let mut headers = cors::apply_cors(Headers::new())?;
+            let headers = cors::apply_cors(Headers::new())?;
             headers.set("Content-Type", "application/json")?;
             return Ok(Response::error("图片已被封禁", 403)?.with_headers(headers));
         }
         if img.is_trash == 1 {
-            let mut headers = cors::apply_cors(Headers::new())?;
+            let headers = cors::apply_cors(Headers::new())?;
             headers.set("Content-Type", "application/json")?;
             return Ok(Response::error("图片已被移入回收站", 404)?.with_headers(headers));
         }
@@ -61,7 +61,7 @@ pub async fn proxy_file(req: Request, env: Env, filekey: String) -> Result<Respo
     let mut cdn_resp = tg::fetch_file_stream(&bot_token, &file_path).await?;
 
     // 3) 注入强缓存，Cloudflare Cache API 必须携带 max-age 才能缓存成功！
-    let mut res_headers = cors::apply_cors(Headers::new())?;
+    let res_headers = cors::apply_cors(Headers::new())?;
     res_headers.set(
         "Cache-Control",
         "public, s-maxage=31536000, max-age=31536000, immutable",
@@ -140,7 +140,7 @@ pub async fn delete_file(req: Request, env: Env, imageid: String) -> Result<Resp
     // 3) 彻底从 D1 清理元数据
     image::delete_physically(&db, &imageid).await?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({

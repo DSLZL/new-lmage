@@ -51,7 +51,7 @@ pub async fn get_user_stats(req: Request, env: Env) -> Result<Response> {
         .and_then(|c| c.as_i64())
         .unwrap_or(0);
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let quota_limit_bytes = 10.0 * 1024.0 * 1024.0 * 1024.0;

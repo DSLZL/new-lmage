@@ -111,7 +111,7 @@ pub async fn send_document(
     let boundary = "LaowangRustMultipartBoundary9527";
     let body = build_multipart_body(boundary, chat_id, filename, mime_type, file_bytes);
 
-    let mut headers = Headers::new();
+    let headers = Headers::new();
     headers.set("Content-Type", &format!("multipart/form-data; boundary={}", boundary))?;
 
     let req = Request::new_with_init(

@@ -1,6 +1,6 @@
 use worker::*;
 
-pub fn apply_cors(mut headers: Headers) -> Result<Headers> {
+pub fn apply_cors(headers: Headers) -> Result<Headers> {
     headers.set("Access-Control-Allow-Origin", "*")?;
     headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")?;
     headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")?;

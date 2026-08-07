@@ -18,7 +18,7 @@ pub async fn get_user_albums(req: Request, env: Env) -> Result<Response> {
         .await?
         .results::<Album>()?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({ "albums": albums }))?.with_headers(headers);
@@ -70,7 +70,7 @@ pub async fn create_album(mut req: Request, env: Env) -> Result<Response> {
 
     album::create(&db, &new_album).await?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({
@@ -106,7 +106,7 @@ pub async fn get_album_detail(req: Request, env: Env, albumid: String) -> Result
                         }
                     }
                     if input_pwd.is_empty() || !crypto::verify_password(&input_pwd, hash) {
-                        let mut headers = cors::apply_cors(Headers::new())?;
+                        let headers = cors::apply_cors(Headers::new())?;
                         headers.set("Content-Type", "application/json")?;
                         return Ok(Response::error("此相册受密码保护，请提供正确的相册提取码", 403)?.with_headers(headers));
                     }
@@ -123,7 +123,7 @@ pub async fn get_album_detail(req: Request, env: Env, albumid: String) -> Result
         .await?
         .results::<Image>()?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({
@@ -193,7 +193,7 @@ pub async fn modify_album_images(mut req: Request, env: Env, albumid: String) ->
         }
     }
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({
@@ -230,7 +230,7 @@ pub async fn delete_album(req: Request, env: Env, albumid: String) -> Result<Res
 
     album::delete(&db, &albumid).await?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({

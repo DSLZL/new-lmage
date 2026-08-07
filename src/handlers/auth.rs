@@ -51,7 +51,7 @@ pub async fn register(mut req: Request, env: Env) -> Result<Response> {
 
     let token = crypto::generate_jwt(&claims, &jwt_secret)?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let res = Response::from_json(&serde_json::json!({
@@ -96,7 +96,7 @@ pub async fn login(mut req: Request, env: Env) -> Result<Response> {
 
     let token = crypto::generate_jwt(&claims, &jwt_secret)?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let res = Response::from_json(&serde_json::json!({
@@ -128,7 +128,7 @@ pub async fn get_user(req: Request, env: Env) -> Result<Response> {
         None => return Response::error("用户已被物理删除", 404),
     };
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let res = Response::from_json(&serde_json::json!({
@@ -201,7 +201,7 @@ pub async fn update_profile(mut req: Request, env: Env) -> Result<Response> {
     )
     .await?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let res = Response::from_json(&serde_json::json!({
@@ -247,7 +247,7 @@ pub async fn change_password(mut req: Request, env: Env) -> Result<Response> {
 
     user::update_password(&db, &u.id, &new_password_hash, now).await?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let res = Response::from_json(&serde_json::json!({

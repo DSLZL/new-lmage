@@ -18,7 +18,7 @@ pub async fn get_user_tags(req: Request, env: Env) -> Result<Response> {
         .await?
         .results::<Tag>()?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({ "tags": tags }))?.with_headers(headers);
@@ -57,7 +57,7 @@ pub async fn create_tag(mut req: Request, env: Env) -> Result<Response> {
 
     tag::create(&db, &new_tag).await?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({
@@ -118,7 +118,7 @@ pub async fn batch_tag_images(mut req: Request, env: Env) -> Result<Response> {
         action_count += 1;
     }
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({
@@ -159,9 +159,46 @@ pub async fn get_tag_images(req: Request, env: Env, tagid: String) -> Result<Res
     .await?
     .results::<Image>()?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({ "images": images }))?.with_headers(headers);
+    Ok(response)
+}
+
+// 5. 获取某张图片的全部标签（光箱联动：展示与同步编辑当前图标签）
+pub async fn get_image_tags(req: Request, env: Env, imageid: String) -> Result<Response> {
+    let db = env.d1("DB")?;
+    let jwt_secret = env.var("JWT_SECRET")?.to_string();
+    let claims = match crypto::authenticate(&req, &jwt_secret) {
+        Ok(c) => c,
+        Err(err) => return Response::error(err.to_string(), 401),
+    };
+
+    let img_opt = crate::domain::image::get_by_id(&db, &imageid).await?;
+    match img_opt {
+        Some(img) => {
+            if img.user_id != claims.sub && claims.username != "admin" {
+                return Response::error("无权查看此图片的标签", 403);
+            }
+        }
+        None => return Response::error("图片不存在", 404),
+    }
+
+    let tags = db.prepare(
+        "SELECT t.* FROM tags t
+         JOIN image_tags it ON t.id = it.tag_id
+         WHERE it.image_id = ?
+         ORDER BY t.name"
+    )
+    .bind(&[imageid.into()])?
+    .all()
+    .await?
+    .results::<Tag>()?;
+
+    let headers = cors::apply_cors(Headers::new())?;
+    headers.set("Content-Type", "application/json")?;
+
+    let response = Response::from_json(&serde_json::json!({ "tags": tags }))?.with_headers(headers);
     Ok(response)
 }

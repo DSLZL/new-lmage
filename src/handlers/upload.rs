@@ -150,7 +150,7 @@ pub async fn upload(mut req: Request, env: Env) -> Result<Response> {
         "src": format!("/file/{}", image_id)
     }]);
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&output)?.with_headers(headers);

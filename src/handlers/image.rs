@@ -44,7 +44,7 @@ pub async fn get_user_images(req: Request, env: Env) -> Result<Response> {
         None => 0,
     };
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({
@@ -76,7 +76,7 @@ pub async fn get_image_detail(req: Request, env: Env, imageid: String) -> Result
         return Response::error("无权查看此图片元数据", 403);
     }
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&img)?.with_headers(headers);
@@ -112,7 +112,7 @@ pub async fn search_user_images(req: Request, env: Env) -> Result<Response> {
     .await?
     .results::<Image>()?;
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({
@@ -153,7 +153,7 @@ pub async fn batch_move_to_trash(mut req: Request, env: Env) -> Result<Response>
         }
     }
 
-    let mut headers = cors::apply_cors(Headers::new())?;
+    let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
 
     let response = Response::from_json(&serde_json::json!({

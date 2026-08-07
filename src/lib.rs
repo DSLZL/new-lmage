@@ -89,6 +89,11 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
             let imageid = ctx.param("imageid").unwrap().to_string();
             handlers::file::delete_file(req, ctx.env, imageid).await
         })
+        // 单张图片的全部标签（光箱联动展示与同步编辑）
+        .get_async("/api/images/:imageid/tags", |req, ctx| async move {
+            let imageid = ctx.param("imageid").unwrap().to_string();
+            handlers::tag::get_image_tags(req, ctx.env, imageid).await
+        })
 
         // ==================== 4. 相册模块 ====================
         .get_async("/api/albums", |req, ctx| async move {
