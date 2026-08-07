@@ -236,14 +236,13 @@ npx wrangler dev --port 8787
 
 ### 自动构建（wrangler.toml）
 
-`wrangler.toml` 中已配置完整构建命令，Worker 部署前会自动依次执行：
+`wrangler.toml` 的 `[build]` 已配置跨平台构建脚本，Worker 部署前会自动执行：
 
 ```
-npm --prefix client install && npm --prefix client run build \
-&& cargo install -q worker-build && worker-build --release
+node build-platform.js
 ```
 
-即：安装并构建前端（输出到 `client/dist`）→ 安装 `worker-build` → 将 Rust 源码编译为 WASM 输出到 `build/`（`main = "build/index.js"`）。前端静态资源通过 Workers Sites 配置 `[site] bucket = "./client/dist"` 一并托管。
+`build-platform.js` 依次完成：检测/自动安装 Rust 工具链（Linux 云端 CI 无 cargo 时自动 `rustup` 安装并注入 PATH）→ 安装并构建前端（`npm --prefix client install && npm run build`，输出到 `client/dist`）→ 安装 `worker-build` → 将 Rust 源码编译为 WASM 输出到 `build/`（`main = "build/index.js"`）。前端静态资源通过 Workers Sites 配置 `[site] bucket = "./client/dist"` 一并托管。
 
 ### 方式一：Cloudflare 绑定 GitHub（推荐）
 

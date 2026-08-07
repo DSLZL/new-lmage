@@ -64,9 +64,10 @@ try {
 }
 
 if (!hasWorkerBuild) {
-  console.log('🚨 未在系统中检测到 worker-build，开始安装...');
+  console.log('🚨 未在系统中检测到 worker-build，开始从 crates.io 下载并编译安装...');
+  console.log('💡 提示：这需要大约 1-2 分钟时间，请耐心等待编译进度日志输出...');
   try {
-    execSync('cargo install -q worker-build', { stdio: 'inherit' });
+    execSync('cargo install worker-build', { stdio: 'inherit' });
   } catch (err) {
     console.error('❌ 安装 worker-build 失败:', err.message);
     process.exit(1);
