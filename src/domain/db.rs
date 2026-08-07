@@ -111,6 +111,10 @@ pub async fn init_db(db: &D1Database) -> Result<()> {
     // CREATE TABLE IF NOT EXISTS 不会重建已存在的表，必须逐列补齐
     migrate(db).await?;
 
+    // 8. 索引迁移：按全量查询模式建立显式索引（幂等），
+    // 数据量增长后避免全表扫描（列表 / 公开画廊 / 相册 / 标签反向 / 关联表）
+    migrate_indexes(db).await?;
+
     Ok(())
 }
 
@@ -168,6 +172,49 @@ async fn migrate(db: &D1Database) -> Result<()> {
                 console_log!("[migrate] {} ADD COLUMN {} {}", table, col, ddl);
             }
         }
+    }
+
+    Ok(())
+}
+
+/// 索引迁移：覆盖全部查询模式的显式索引（幂等，IF NOT EXISTS）
+async fn migrate_indexes(db: &D1Database) -> Result<()> {
+    let indexes: [(&str, &str); 6] = [
+        (
+            "idx_images_user_list",
+            // 登录用户图片列表：WHERE user_id = ? AND is_trash = 0 ORDER BY uploaded_at DESC
+            "CREATE INDEX IF NOT EXISTS idx_images_user_list ON images(user_id, is_trash, uploaded_at DESC)",
+        ),
+        (
+            "idx_images_public",
+            // 游客公开画廊：WHERE is_trash = 0 AND is_blocked = 0 ORDER BY uploaded_at DESC
+            "CREATE INDEX IF NOT EXISTS idx_images_public ON images(is_trash, is_blocked, uploaded_at DESC)",
+        ),
+        (
+            "idx_images_album",
+            // 相册详情：WHERE album_id = ?
+            "CREATE INDEX IF NOT EXISTS idx_images_album ON images(album_id)",
+        ),
+        (
+            "idx_image_tags_tag",
+            // 按标签拉图：JOIN image_tags ON ... WHERE it.tag_id = ?
+            "CREATE INDEX IF NOT EXISTS idx_image_tags_tag ON image_tags(tag_id)",
+        ),
+        (
+            "idx_tags_user",
+            // 标签列表：WHERE user_id = ?
+            "CREATE INDEX IF NOT EXISTS idx_tags_user ON tags(user_id)",
+        ),
+        (
+            "idx_albums_user",
+            // 相册列表：WHERE user_id = ?
+            "CREATE INDEX IF NOT EXISTS idx_albums_user ON albums(user_id)",
+        ),
+    ];
+
+    for (name, sql) in indexes {
+        db.prepare(sql).run().await?;
+        console_log!("[migrate] index {} ready", name);
     }
 
     Ok(())

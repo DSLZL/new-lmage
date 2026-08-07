@@ -1,11 +1,11 @@
-use serde::{Deserialize, Serialize};
+﻿use serde::{Deserialize, Serialize};
 use worker::d1::D1Database;
 use worker::*;
 
 use super::db::{int_i64, opt_i64, opt_str};
 
 // 图片实体
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Image {
     pub id: String,
     pub file_id: String,

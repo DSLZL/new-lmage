@@ -176,6 +176,8 @@ pub async fn batch_move_to_trash(mut req: Request, env: Env) -> Result<Response>
         if let Ok(Some(img)) = image::get_by_id(&db, &full_id).await {
             if img.user_id == claims.sub || claims.username == "admin" {
                 let _ = image::set_trash_status(&db, &full_id, 1).await;
+                // 失效内存状态缓存：回收站操作即时生效（不等待 30s TTL）
+                crate::core::img_cache::invalidate(&full_id);
                 success_count += 1;
             }
         }

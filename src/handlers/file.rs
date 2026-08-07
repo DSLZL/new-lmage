@@ -12,7 +12,18 @@ pub async fn proxy_file(req: Request, env: Env, filekey: String) -> Result<Respo
     let raw_file_id = filekey.split('.').next().unwrap_or(&filekey).to_string();
     let mut target_file_id = raw_file_id.clone();
 
-    let img_opt = image::get_by_id(&db, &filekey).await.unwrap_or(None);
+    // 状态/元数据优先走 30s 内存缓存（热图访问零 D1 查询），
+    // 未命中才查库并回填；删除/回收站等写操作已主动失效保证即时生效
+    let img_opt = match crate::core::img_cache::get(&filekey) {
+        Some(img) => Some(img),
+        None => {
+            let opt = image::get_by_id(&db, &filekey).await.unwrap_or(None);
+            if let Some(ref img) = opt {
+                crate::core::img_cache::set(&filekey, img);
+            }
+            opt
+        }
+    };
 
     if let Some(ref img) = img_opt {
         if img.is_blocked == 1 {
@@ -139,6 +150,9 @@ pub async fn delete_file(req: Request, env: Env, imageid: String) -> Result<Resp
 
     // 3) 彻底从 D1 清理元数据
     image::delete_physically(&db, &imageid).await?;
+
+    // 4) 失效内存状态缓存（物理删除即时生效，不留幽灵缓存）
+    crate::core::img_cache::invalidate(&imageid);
 
     let headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
