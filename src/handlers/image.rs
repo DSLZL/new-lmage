@@ -66,8 +66,8 @@ pub async fn get_image_detail(req: Request, env: Env, imageid: String) -> Result
         Err(err) => return Response::error(err.to_string(), 401),
     };
 
-    let file_id = imageid.split('.').next().unwrap_or(&imageid);
-    let img = match image::get_by_id(&db, file_id).await? {
+    // D1 存完整 id（纯 file_id + 后缀），直接用完整 imageid 查询
+    let img = match image::get_by_id(&db, &imageid).await? {
         Some(i) => i,
         None => return Response::error("图片不存在", 404),
     };
@@ -144,11 +144,10 @@ pub async fn batch_move_to_trash(mut req: Request, env: Env) -> Result<Response>
 
     let mut success_count = 0;
     for full_id in body.fileids {
-        let file_id = full_id.split('.').next().unwrap_or(&full_id);
-        
-        if let Ok(Some(img)) = image::get_by_id(&db, file_id).await {
+        // D1 存完整 id（纯 file_id + 后缀），查询与写入都用完整 id
+        if let Ok(Some(img)) = image::get_by_id(&db, &full_id).await {
             if img.user_id == claims.sub || claims.username == "admin" {
-                let _ = image::set_trash_status(&db, file_id, 1).await;
+                let _ = image::set_trash_status(&db, &full_id, 1).await;
                 success_count += 1;
             }
         }

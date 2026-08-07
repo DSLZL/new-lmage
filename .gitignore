@@ -70,3 +70,5 @@ Thumbs.db
 # package-lock.json
 # yarn.lock
 # pnpm-lock.yaml
+# 本地 Cargo 镜像配置（仅本地生效，云端构建请使用官方 crates.io） 
+.cargo/  

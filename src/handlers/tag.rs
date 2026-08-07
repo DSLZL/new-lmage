@@ -86,9 +86,8 @@ pub async fn batch_tag_images(mut req: Request, env: Env) -> Result<Response> {
     let mut action_count = 0;
 
     for full_id in body.file_ids {
-        let file_id = full_id.split('.').next().unwrap_or(&full_id);
-        
-        let img = match crate::domain::image::get_by_id(&db, file_id).await {
+        // D1 存完整 id（纯 file_id + 后缀），查询与 image_tags 外键写入都用完整 id
+        let img = match crate::domain::image::get_by_id(&db, &full_id).await {
             Ok(Some(i)) => i,
             _ => continue,
         };
@@ -106,12 +105,12 @@ pub async fn batch_tag_images(mut req: Request, env: Env) -> Result<Response> {
 
             if body.action == "add" {
                 let _ = db.prepare("INSERT OR IGNORE INTO image_tags (image_id, tag_id) VALUES (?, ?)")
-                    .bind(&[file_id.into(), t.id.into()])?
+                    .bind(&[full_id.clone().into(), t.id.into()])?
                     .run()
                     .await;
             } else {
                 let _ = db.prepare("DELETE FROM image_tags WHERE image_id = ? AND tag_id = ?")
-                    .bind(&[file_id.into(), t.id.into()])?
+                    .bind(&[full_id.clone().into(), t.id.into()])?
                     .run()
                     .await;
             }

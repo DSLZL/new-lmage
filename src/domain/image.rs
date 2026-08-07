@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use worker::d1::D1Database;
 use worker::*;
 
+use super::db::{int_i64, opt_i64, opt_str};
+
 // 图片实体
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Image {
@@ -41,17 +43,17 @@ pub async fn create(db: &D1Database, img: &Image) -> Result<()> {
         img.id.as_str().into(),
         img.file_id.as_str().into(),
         img.file_name.as_str().into(),
-        img.file_size.into(),
+        int_i64(img.file_size),
         img.mime_type.as_str().into(),
         img.user_id.as_str().into(),
-        img.album_id.as_deref().into(),
-        img.message_id.into(),
-        img.thumb_file_id.as_deref().into(),
-        img.views.into(),
-        img.last_accessed_at.into(),
+        opt_str(img.album_id.as_deref()),
+        opt_i64(img.message_id),
+        opt_str(img.thumb_file_id.as_deref()),
+        int_i64(img.views),
+        opt_i64(img.last_accessed_at),
         img.is_trash.into(),
         img.is_blocked.into(),
-        img.uploaded_at.into(),
+        int_i64(img.uploaded_at),
     ])?
     .run()
     .await?;
@@ -91,7 +93,7 @@ pub async fn set_block_status(db: &D1Database, id: &str, is_blocked: i32) -> Res
 
 pub async fn increment_views(db: &D1Database, id: &str, now: i64) -> Result<()> {
     db.prepare("UPDATE images SET views = views + 1, last_accessed_at = ? WHERE id = ?")
-        .bind(&[now.into(), id.into()])?
+        .bind(&[int_i64(now), id.into()])?
         .run()
         .await?;
     Ok(())

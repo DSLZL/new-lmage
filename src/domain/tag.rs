@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use worker::d1::D1Database;
 use worker::*;
 
+use super::db::opt_str;
+
 // 标签实体
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Tag {
@@ -25,7 +27,7 @@ pub async fn create(db: &D1Database, tag: &Tag) -> Result<()> {
         .bind(&[
             tag.id.as_str().into(),
             tag.name.as_str().into(),
-            tag.color.as_deref().into(),
+            opt_str(tag.color.as_deref()),
             tag.user_id.as_str().into()
         ])?
         .run()

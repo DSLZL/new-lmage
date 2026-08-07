@@ -181,12 +181,11 @@ pub async fn modify_album_images(mut req: Request, env: Env, albumid: String) ->
 
     let mut modified_count = 0;
     for full_id in body.imageids {
-        let file_id = full_id.split('.').next().unwrap_or(&full_id);
-        
-        if let Ok(Some(img)) = crate::domain::image::get_by_id(&db, file_id).await {
+        // D1 存完整 id（纯 file_id + 后缀），查询与写入都用完整 id
+        if let Ok(Some(img)) = crate::domain::image::get_by_id(&db, &full_id).await {
             if img.user_id == claims.sub || claims.username == "admin" {
                 db.prepare("UPDATE images SET album_id = ? WHERE id = ?")
-                    .bind(&[target_album_id.as_deref().into(), file_id.into()])?
+                    .bind(&[crate::domain::db::opt_str(target_album_id.as_deref()), full_id.into()])?
                     .run()
                     .await?;
                 modified_count += 1;

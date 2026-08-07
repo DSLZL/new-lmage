@@ -1,5 +1,28 @@
 use worker::d1::D1Database;
+use worker::wasm_bindgen::JsValue;
 use worker::*;
+
+// Option 值转 D1 绑定值：None 必须显式转 JS null，
+// 直接 .into() 会把 None 变成 undefined，D1 拒绝绑定并抛 D1_TYPE_ERROR
+pub fn opt_str(v: Option<&str>) -> JsValue {
+    match v {
+        Some(s) => JsValue::from_str(s),
+        None => JsValue::null(),
+    }
+}
+
+pub fn opt_i64(v: Option<i64>) -> JsValue {
+    match v {
+        Some(n) => JsValue::from_f64(n as f64),
+        None => JsValue::null(),
+    }
+}
+
+// i64 转 D1 绑定值：必须转 JS number（f64）。
+// 直接 .into() 会变成 BigInt，而 D1 不支持 BigInt 类型
+pub fn int_i64(v: i64) -> JsValue {
+    JsValue::from_f64(v as f64)
+}
 
 // 在 Worker 运行期间，自动检测并自动创建所有必需的 SQL 数据表 (零摩擦冷启动自愈)
 pub async fn init_db(db: &D1Database) -> Result<()> {

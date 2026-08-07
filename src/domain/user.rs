@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use worker::d1::D1Database;
 use worker::*;
 
+use super::db::{int_i64, opt_str};
+
 // JWT Payload
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -84,10 +86,10 @@ pub async fn create(db: &D1Database, user: &User) -> Result<()> {
         user.username.as_str().into(),
         user.email.as_str().into(),
         user.password_hash.as_str().into(),
-        user.avatar_url.as_deref().into(),
-        user.bio.as_deref().into(),
-        user.created_at.into(),
-        user.updated_at.into(),
+        opt_str(user.avatar_url.as_deref()),
+        opt_str(user.bio.as_deref()),
+        int_i64(user.created_at),
+        int_i64(user.updated_at),
     ])?
     .run()
     .await?;
@@ -109,9 +111,9 @@ pub async fn update_profile(
     .bind(&[
         username.into(),
         email.into(),
-        bio.into(),
-        avatar_url.into(),
-        updated_at.into(),
+        opt_str(bio),
+        opt_str(avatar_url),
+        int_i64(updated_at),
         user_id.into()
     ])?
     .run()
@@ -121,7 +123,7 @@ pub async fn update_profile(
 
 pub async fn update_password(db: &D1Database, user_id: &str, password_hash: &str, updated_at: i64) -> Result<()> {
     db.prepare("UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?")
-        .bind(&[password_hash.into(), updated_at.into(), user_id.into()])?
+        .bind(&[password_hash.into(), int_i64(updated_at), user_id.into()])?
         .run()
         .await?;
     Ok(())

@@ -17,14 +17,41 @@ pub struct TgPhotoSize {
     pub file_size: Option<u64>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 pub struct TgDocument {
     pub file_id: String,
     pub file_name: Option<String>,
     pub mime_type: Option<String>,
     pub file_size: Option<u64>,
-    #[serde(alias = "thumb")]
     pub thumbnail: Option<TgPhotoSize>,
+}
+
+// TG 新版接口同时返回 thumbnail 与 thumb 两个缩略图字段，
+// 若用 alias 会触发 serde "duplicate field" 错误，这里手动合并取其一
+impl<'de> Deserialize<'de> for TgDocument {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct TgDocumentRaw {
+            file_id: String,
+            file_name: Option<String>,
+            mime_type: Option<String>,
+            file_size: Option<u64>,
+            thumbnail: Option<TgPhotoSize>,
+            thumb: Option<TgPhotoSize>,
+        }
+
+        let raw = TgDocumentRaw::deserialize(deserializer)?;
+        Ok(TgDocument {
+            file_id: raw.file_id,
+            file_name: raw.file_name,
+            mime_type: raw.mime_type,
+            file_size: raw.file_size,
+            thumbnail: raw.thumbnail.or(raw.thumb),
+        })
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -96,7 +123,14 @@ pub async fn send_document(
     )?;
 
     let mut resp = Fetch::Request(req).send().await?;
-    let json: TgResponse<TgSendResult> = resp.json().await?;
+    let text = resp.text().await?;
+    let json: TgResponse<TgSendResult> = match serde_json::from_str(&text) {
+        Ok(j) => j,
+        Err(e) => {
+            console_log!("[debug] tg sendDocument raw resp: {}", text);
+            return Err(Error::from(format!("TG 响应解析失败: {}", e)));
+        }
+    };
 
     if !json.ok || json.result.is_none() {
         let desc = json.description.unwrap_or_else(|| "未知错误".to_string());
@@ -110,7 +144,9 @@ pub async fn send_document(
 pub async fn get_file_path(bot_token: &str, file_id: &str) -> Result<String> {
     let url = format!("https://api.telegram.org/bot{}/getFile?file_id={}", bot_token, file_id);
     let mut resp = Fetch::Url(Url::parse(&url)?).send().await?;
-    let json: TgResponse<TgFile> = resp.json().await?;
+    let text = resp.text().await?;
+    let json: TgResponse<TgFile> = serde_json::from_str(&text)
+        .map_err(|e| Error::from(format!("TG 响应解析失败: {}", e)))?;
 
     if !json.ok || json.result.is_none() {
         return Err(Error::from("物理文件不存在或在 TG 侧已过期"));

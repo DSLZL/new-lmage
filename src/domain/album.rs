@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use worker::d1::D1Database;
 use worker::*;
 
+use super::db::{int_i64, opt_str};
+
 // 相册实体
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Album {
@@ -33,11 +35,11 @@ pub async fn create(db: &D1Database, album: &Album) -> Result<()> {
     .bind(&[
         album.id.as_str().into(),
         album.name.as_str().into(),
-        album.description.as_deref().into(),
-        album.cover_url.as_deref().into(),
-        album.password_hash.as_deref().into(),
+        opt_str(album.description.as_deref()),
+        opt_str(album.cover_url.as_deref()),
+        opt_str(album.password_hash.as_deref()),
         album.user_id.as_str().into(),
-        album.created_at.into()
+        int_i64(album.created_at)
     ])?
     .run()
     .await?;

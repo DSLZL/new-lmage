@@ -4,13 +4,6 @@ use worker::*;
 
 // 1. 流式图片代理网关（完美打通 Cloudflare Cache API 全球边缘节点物理缓存，防盗链，点击量统计，多尺寸缩略图）
 pub async fn proxy_file(req: Request, env: Env, filekey: String) -> Result<Response> {
-    // ⚡ 极致白嫖：第一关，尝试直接从 Cloudflare 边缘物理缓存中拿！
-    let cache_key = req.url()?.to_string();
-    if let Ok(Some(cached_resp)) = Cache::default().get(&cache_key, true).await {
-        // 🚀 物理秒开击中：直接跳过 D1 查询、TG CDN 穿透、网络开销，零时延输出！
-        return Ok(cached_resp);
-    }
-
     let db = env.d1("DB")?;
     let bot_token = env.var("TG_Bot_Token")?.to_string();
 
@@ -40,11 +33,12 @@ pub async fn proxy_file(req: Request, env: Env, filekey: String) -> Result<Respo
         }
     }
 
+    // ⚡ 状态校验必须先于缓存检查：封禁/回收站必须立即生效，
+    // 否则被边缘缓存兜住的图片可绕过拦截继续读取
     let raw_file_id = filekey.split('.').next().unwrap_or(&filekey).to_string();
     let mut target_file_id = raw_file_id.clone();
 
-    // 查 D1 校验封禁与回收站状态
-    let img_opt = image::get_by_id(&db, &raw_file_id).await.unwrap_or(None);
+    let img_opt = image::get_by_id(&db, &filekey).await.unwrap_or(None);
 
     if let Some(ref img) = img_opt {
         if img.is_blocked == 1 {
@@ -74,6 +68,13 @@ pub async fn proxy_file(req: Request, env: Env, filekey: String) -> Result<Respo
                 target_file_id = thumb_id.clone();
             }
         }
+    }
+
+    // ⚡ 极致白嫖：第一关，尝试直接从 Cloudflare 边缘物理缓存中拿！
+    let cache_key = req.url()?.to_string();
+    if let Ok(Some(cached_resp)) = Cache::default().get(&cache_key, true).await {
+        // 🚀 物理秒开击中：直接跳过 TG CDN 穿透，零时延输出！
+        return Ok(cached_resp);
     }
 
     // 1) 换取物理路径
@@ -138,8 +139,8 @@ pub async fn delete_file(req: Request, env: Env, imageid: String) -> Result<Resp
         Err(err) => return Response::error(err.to_string(), 401),
     };
 
-    let file_id = imageid.split('.').next().unwrap_or(&imageid);
-    let img = match image::get_by_id(&db, file_id).await? {
+    // D1 存完整 id（纯 file_id + 后缀），直接用完整 imageid 查询
+    let img = match image::get_by_id(&db, &imageid).await? {
         Some(i) => i,
         None => return Response::error("图片不存在", 404),
     };
@@ -153,8 +154,17 @@ pub async fn delete_file(req: Request, env: Env, imageid: String) -> Result<Resp
         let _ = tg::delete_message(&bot_token, &chat_id, msg_id).await;
     }
 
-    // 2) 彻底从 D1 清理元数据
-    image::delete_physically(&db, file_id).await?;
+    // 2) 清掉边缘缓存（原图 + 缩略图），防止已删图片被缓存继续吐给用户
+    if let Ok(url) = req.url() {
+        let origin = format!("{}://{}", url.scheme(), url.host_str().unwrap_or(""));
+        for suffix in ["", "?size=thumb"] {
+            let cache_key = format!("{}/file/{}{}", origin, imageid, suffix);
+            let _ = Cache::default().delete(&cache_key, true).await;
+        }
+    }
+
+    // 3) 彻底从 D1 清理元数据
+    image::delete_physically(&db, &imageid).await?;
 
     let mut headers = cors::apply_cors(Headers::new())?;
     headers.set("Content-Type", "application/json")?;
